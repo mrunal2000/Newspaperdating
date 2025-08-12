@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
-import { Heart } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
+
+interface Comment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: Date;
+}
 
 interface Profile {
   id: string;
@@ -13,6 +20,7 @@ interface Profile {
   image?: string;
   interests: string[];
   createdAt: Date;
+  comments: Comment[];
 }
 
 // City-specific template posts
@@ -298,7 +306,8 @@ function generateCityPosts(city: string, count: number): Profile[] {
         location: `${city}, ${getStateFromCity(city)}`,
         description: randomDescription,
         interests: randomInterests,
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // Random time in last 7 days
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last 7 days
+        comments: []
       });
     }
     return posts;
@@ -318,10 +327,11 @@ function generateCityPosts(city: string, count: number): Profile[] {
       name: randomName,
       age: Math.floor(Math.random() * 15) + 25, // 25-40
       title: randomTitle,
-              location: `${city}, ${getStateFromCity(city)}`,
+      location: `${city}, ${getStateFromCity(city)}`,
       description: randomDescription,
       interests: randomInterests,
-      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // Random time in last 7 days
+      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last 7 days
+      comments: []
     });
   }
   
@@ -372,9 +382,26 @@ function formatTimestamp(date: Date): string {
   }
 }
 
-function ProfileCard({ profile }: { 
+function ProfileCard({ profile, onAddComment }: { 
   profile: Profile; 
+  onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
 }) {
+  const [showComments, setShowComments] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [commentAuthor, setCommentAuthor] = useState('');
+
+  const handleSubmitComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newComment.trim() && commentAuthor.trim()) {
+      onAddComment(profile.id, {
+        text: newComment.trim(),
+        author: commentAuthor.trim()
+      });
+      setNewComment('');
+      setCommentAuthor('');
+    }
+  };
+
   return (
     <div className="box-border content-stretch flex flex-col gap-2.5 items-start justify-start p-0 relative shrink-0 w-full">
       <div className="h-[38px] relative shrink-0 w-[100px] flex items-center justify-center">
@@ -392,9 +419,6 @@ function ProfileCard({ profile }: {
       <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
         <div className="flex flex-col font-futura-condensed-extra-bold font-futura-fallback justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
           <p className="block leading-[normal]">{profile.title}</p>
-        </div>
-        <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[16px] text-left w-full">
-          <p className="block leading-[normal]">{profile.location}</p>
         </div>
         <div className="h-0 relative shrink-0 w-full">
           <div className="absolute bottom-0 left-0 right-0 top-[-1px]">
@@ -443,7 +467,70 @@ function ProfileCard({ profile }: {
             <Heart className="w-3 h-3" />
             Like
           </Button>
+          <Button
+            size="sm"
+            variant="newspaper"
+            onClick={() => setShowComments(!showComments)}
+            className="text-xs"
+          >
+            <MessageCircle className="w-3 h-3" />
+            {profile.comments.length} Comments
+          </Button>
         </div>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <h4 className="font-nyt font-bold text-sm mb-3">Comments</h4>
+            
+            {/* Comment Form */}
+            <form onSubmit={handleSubmitComment} className="mb-4">
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={commentAuthor}
+                  onChange={(e) => setCommentAuthor(e.target.value)}
+                  className="p-2 border border-gray-300 rounded text-sm font-nyt"
+                  required
+                />
+                <textarea
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="p-2 border border-gray-300 rounded text-sm font-nyt h-20 resize-none"
+                  required
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="newspaper"
+                  className="text-xs self-start"
+                >
+                  Post Comment
+                </Button>
+              </div>
+            </form>
+
+            {/* Comments List */}
+            <div className="space-y-3">
+              {profile.comments.map((comment) => (
+                <div key={comment.id} className="bg-gray-50 p-3 rounded">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-nyt font-bold text-sm">{comment.author}</span>
+                    <span className="text-xs text-gray-500 font-nyt">
+                      {formatTimestamp(comment.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-sm font-nyt">{comment.text}</p>
+                </div>
+              ))}
+              {profile.comments.length === 0 && (
+                <p className="text-sm text-gray-500 font-nyt italic">No comments yet. Be the first to comment!</p>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="h-0 relative shrink-0 w-full">
           <div className="absolute bottom-0 left-0 right-0 top-[-1px]">
@@ -468,9 +555,26 @@ function ProfileCard({ profile }: {
   );
 }
 
-function ProfileCardWithImage({ profile }: { 
+function ProfileCardWithImage({ profile, onAddComment }: { 
   profile: Profile; 
+  onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
 }) {
+  const [showComments, setShowComments] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [commentAuthor, setCommentAuthor] = useState('');
+
+  const handleSubmitComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newComment.trim() && commentAuthor.trim()) {
+      onAddComment(profile.id, {
+        text: newComment.trim(),
+        author: commentAuthor.trim()
+      });
+      setNewComment('');
+      setCommentAuthor('');
+    }
+  };
+
   return (
     <div className="box-border content-stretch flex flex-col gap-[30px] items-start justify-start p-0 relative shrink-0 w-full">
       <div className="h-[284px] relative shrink-0 w-full">
@@ -512,9 +616,6 @@ function ProfileCardWithImage({ profile }: {
         <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
           <div className="flex flex-col font-futura-condensed-extra-bold font-futura-fallback justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
             <p className="block leading-[normal]">{profile.title}</p>
-          </div>
-          <div className="flex flex-col font-['NYTImperial:Regular',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[16px] text-left w-full">
-            <p className="block leading-[normal]">{profile.location}</p>
           </div>
           <div className="h-0 relative shrink-0 w-full">
             <div className="absolute bottom-0 left-0 right-0 top-[-1px]">
@@ -563,8 +664,71 @@ function ProfileCardWithImage({ profile }: {
               <Heart className="w-3 h-3" />
               Like
             </Button>
+            <Button
+              size="sm"
+              variant="newspaper"
+              onClick={() => setShowComments(!showComments)}
+              className="text-xs"
+            >
+              <MessageCircle className="w-3 h-3" />
+              {profile.comments.length} Comments
+            </Button>
           </div>
         </div>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="mt-4 border-t border-gray-200 pt-4">
+            <h4 className="font-['NYTImperial:Regular',_sans-serif] font-bold text-sm mb-3">Comments</h4>
+            
+            {/* Comment Form */}
+            <form onSubmit={handleSubmitComment} className="mb-4 w-full">
+              <div className="flex flex-col gap-2 w-full">
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={commentAuthor}
+                  onChange={(e) => setCommentAuthor(e.target.value)}
+                  className="p-2 border border-gray-300 rounded text-sm font-['NYTImperial:Regular',_sans-serif] w-full"
+                  required
+                />
+                <textarea
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="p-2 border border-gray-300 rounded text-sm font-nyt h-20 resize-none w-full"
+                  required
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="newspaper"
+                  className="text-xs self-start"
+                >
+                  Post Comment
+                </Button>
+              </div>
+            </form>
+
+            {/* Comments List */}
+            <div className="space-y-3 w-full">
+              {profile.comments.map((comment) => (
+                <div key={comment.id} className="bg-gray-50 p-3 rounded w-full">
+                  <div className="flex justify-between items-start mb-1 w-full">
+                    <span className="font-['NYTImperial:Regular',_sans-serif] font-bold text-sm">{comment.author}</span>
+                    <span className="text-xs text-gray-500 font-['NYTImperial:Regular',_sans-serif]">
+                      {formatTimestamp(comment.createdAt)}
+                    </span>
+                  </div>
+                  <p className="text-sm font-['NYTImperial:Regular',_sans-serif] w-full">{comment.text}</p>
+                </div>
+              ))}
+              {profile.comments.length === 0 && (
+                <p className="text-sm text-gray-500 font-['NYTImperial:Regular',_sans-serif] italic w-full">No comments yet. Be the first to comment!</p>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="h-0 relative shrink-0 w-full">
           <div className="absolute bottom-0 left-0 right-0 top-[-1px]">
@@ -641,7 +805,7 @@ function NewspaperHeader({ onCityChange, usCities }: { onCityChange: () => void;
       
       <div className="box-border content-stretch flex flex-col gap-3 items-start justify-start p-0 relative shrink-0 w-full">
         <NewspaperDivider />
-        <div className="box-border content-stretch flex flex-col lg:flex-row font-['NYTImperial:Regular',_sans-serif] items-center justify-between leading-[0] not-italic p-0 relative shrink-0 text-[#000000] text-[14px] lg:text-[16px] text-center text-nowrap w-full gap-2 lg:gap-0">
+        <div className="box-border content-stretch flex flex-col lg:flex-row font-nyt items-center justify-between leading-[0] not-italic p-0 relative shrink-0 text-[#000000] text-[14px] lg:text-[16px] text-center text-nowrap w-full gap-2 lg:gap-0">
           <div className="flex flex-col justify-end relative shrink-0">
             <p className="block leading-[normal] text-nowrap whitespace-pre">
               live, love, laugh
@@ -701,7 +865,8 @@ function AddPostForm({ onAddPost }: { onAddPost: (profile: Omit<Profile, 'id' | 
         title: formData.title,
         location: formData.location,
         description: formData.description,
-        interests: formData.interests.split(',').map(i => i.trim()).filter(i => i.length > 0)
+        interests: formData.interests.split(',').map(i => i.trim()).filter(i => i.length > 0),
+        comments: []
       };
       onAddPost(newProfile);
       setFormData({
@@ -904,6 +1069,20 @@ export default function App() {
     setProfiles(prev => [...prev, newPost]); // Add new post at the end to distribute across columns
   };
 
+  const addComment = (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => {
+    const newComment: Comment = {
+      ...comment,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    };
+    
+    setProfiles(prev => prev.map(profile => 
+      profile.id === profileId 
+        ? { ...profile, comments: [...profile.comments, newComment] }
+        : profile
+    ));
+  };
+
   // Split profiles into columns with time-based hierarchy (latest posts first)
   const totalProfiles = profiles.length;
   const leftColumnCount = Math.ceil(totalProfiles / 3);
@@ -930,6 +1109,7 @@ export default function App() {
                 <ProfileCard 
                   key={profile.id} 
                   profile={profile} 
+                  onAddComment={addComment}
                 />
               ))}
             </div>
@@ -943,11 +1123,13 @@ export default function App() {
                   <ProfileCardWithImage 
                     key={profile.id} 
                     profile={profile} 
+                    onAddComment={addComment}
                   />
                 ) : (
                   <ProfileCard 
                     key={profile.id} 
                     profile={profile} 
+                    onAddComment={addComment}
                   />
                 )
               )}
@@ -961,6 +1143,7 @@ export default function App() {
                 <ProfileCard 
                   key={profile.id} 
                   profile={profile} 
+                  onAddComment={addComment}
                 />
               ))}
             </div>
