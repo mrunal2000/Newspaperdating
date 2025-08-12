@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
 import { Heart, MessageCircle } from 'lucide-react';
@@ -382,9 +382,11 @@ function formatTimestamp(date: Date): string {
   }
 }
 
-function ProfileCard({ profile, onAddComment }: { 
+function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: { 
   profile: Profile; 
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
+  onDeletePost: (profileId: string) => void;
+  isUserPost: boolean;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -476,6 +478,16 @@ function ProfileCard({ profile, onAddComment }: {
             <MessageCircle className="w-3 h-3" />
             {profile.comments.length} Comments
           </Button>
+          {isUserPost && (
+            <Button
+              size="sm"
+              variant="newspaper"
+              onClick={() => onDeletePost(profile.id)}
+              className="text-xs"
+            >
+              🗑️ Delete
+            </Button>
+          )}
         </div>
 
         {/* Comments Section */}
@@ -555,9 +567,11 @@ function ProfileCard({ profile, onAddComment }: {
   );
 }
 
-function ProfileCardWithImage({ profile, onAddComment }: { 
+function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost }: { 
   profile: Profile; 
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
+  onDeletePost: (profileId: string) => void;
+  isUserPost: boolean;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -603,7 +617,7 @@ function ProfileCardWithImage({ profile, onAddComment }: {
       <div className="box-border content-stretch flex flex-col gap-2.5 items-start justify-start p-0 relative shrink-0 w-full">
         <div className="h-[38px] relative shrink-0 w-[100px] flex items-center justify-center">
           <div className="h-[38px] w-[100px] flex items-center justify-center">
-            <div className="flex flex-col font-['NYTImperial:Regular',_sans-serif] justify-center items-center leading-[0] not-italic text-[#252424] text-[16px] text-center text-nowrap">
+            <div className="flex flex-col font-nyt justify-center items-center leading-[0] not-italic text-[#252424] text-[16px] text-center text-nowrap">
               <p className="block leading-[normal] whitespace-pre">{profile.name},{profile.age}</p>
             </div>
           </div>
@@ -635,19 +649,19 @@ function ProfileCardWithImage({ profile, onAddComment }: {
               </svg>
             </div>
           </div>
-          <div className="flex flex-col font-['NYTImperial',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
+          <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
             <p className="block leading-[normal]">{profile.description}</p>
           </div>
           
           {/* Timestamp */}
-          <div className="flex flex-col font-['NYTImperial:Regular',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[12px] text-left w-full mt-2">
+          <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[12px] text-left w-full mt-2">
             <p className="block leading-[normal]">{formatTimestamp(profile.createdAt)}</p>
           </div>
           
           {/* Interest tags */}
           <div className="flex flex-wrap gap-1 mt-2">
             {profile.interests.map((interest, index) => (
-              <Badge key={index} variant="outline" className="text-xs font-['NYTImperial:Regular',_sans-serif]">
+              <Badge key={index} variant="outline" className="text-xs font-nyt">
                 {interest}
               </Badge>
             ))}
@@ -673,13 +687,23 @@ function ProfileCardWithImage({ profile, onAddComment }: {
               <MessageCircle className="w-3 h-3" />
               {profile.comments.length} Comments
             </Button>
+            {isUserPost && (
+              <Button
+                size="sm"
+                variant="newspaper"
+                onClick={() => onDeletePost(profile.id)}
+                className="text-xs"
+              >
+                🗑️ Delete
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Comments Section */}
         {showComments && (
           <div className="mt-4 border-t border-gray-200 pt-4">
-            <h4 className="font-['NYTImperial:Regular',_sans-serif] font-bold text-sm mb-3">Comments</h4>
+            <h4 className="font-nyt font-bold text-sm mb-3">Comments</h4>
             
             {/* Comment Form */}
             <form onSubmit={handleSubmitComment} className="mb-4 w-full">
@@ -689,7 +713,7 @@ function ProfileCardWithImage({ profile, onAddComment }: {
                   placeholder="Your name"
                   value={commentAuthor}
                   onChange={(e) => setCommentAuthor(e.target.value)}
-                  className="p-2 border border-gray-300 rounded text-sm font-['NYTImperial:Regular',_sans-serif] w-full"
+                  className="p-2 border border-gray-300 rounded text-sm font-nyt w-full"
                   required
                 />
                 <textarea
@@ -715,16 +739,16 @@ function ProfileCardWithImage({ profile, onAddComment }: {
               {profile.comments.map((comment) => (
                 <div key={comment.id} className="bg-gray-50 p-3 rounded w-full">
                   <div className="flex justify-between items-start mb-1 w-full">
-                    <span className="font-['NYTImperial:Regular',_sans-serif] font-bold text-sm">{comment.author}</span>
-                    <span className="text-xs text-gray-500 font-['NYTImperial:Regular',_sans-serif]">
+                    <span className="font-nyt font-bold text-sm">{comment.author}</span>
+                    <span className="text-xs text-gray-500 font-nyt">
                       {formatTimestamp(comment.createdAt)}
                     </span>
                   </div>
-                  <p className="text-sm font-['NYTImperial:Regular',_sans-serif] w-full">{comment.text}</p>
+                  <p className="text-sm font-nyt w-full">{comment.text}</p>
                 </div>
               ))}
               {profile.comments.length === 0 && (
-                <p className="text-sm text-gray-500 font-['NYTImperial:Regular',_sans-serif] italic w-full">No comments yet. Be the first to comment!</p>
+                <p className="text-sm text-gray-500 font-nyt italic w-full">No comments yet. Be the first to comment!</p>
               )}
             </div>
           </div>
@@ -781,7 +805,156 @@ function NewspaperDivider() {
   );
 }
 
-function NewspaperHeader({ onCityChange, usCities }: { onCityChange: () => void; usCities: string[] }) {
+function DateIdeas({ city }: { city: string }) {
+  // Date ideas for different cities
+  const cityDateIdeas: { [key: string]: string[] } = {
+    'San Francisco': [
+      'Walk across Golden Gate Bridge at sunset',
+      'Explore Mission District food scene',
+      'Visit Alcatraz Island together',
+      'Ride cable cars through Nob Hill',
+      'Picnic at Golden Gate Park',
+      'Explore Fisherman\'s Wharf',
+      'Visit Palace of Fine Arts',
+      'Walk along Embarcadero',
+      'Explore Chinatown together',
+      'Visit Coit Tower for city views'
+    ],
+    'New York': [
+      'Walk through Central Park',
+      'Visit Times Square at night',
+      'Explore Brooklyn Bridge walkway',
+      'Visit Metropolitan Museum of Art',
+      'Walk High Line park',
+      'Explore Greenwich Village',
+      'Visit Empire State Building',
+      'Walk through SoHo galleries',
+      'Visit Brooklyn Botanic Garden',
+      'Explore Little Italy together'
+    ],
+    'Los Angeles': [
+      'Walk Venice Beach boardwalk',
+      'Visit Griffith Observatory',
+      'Explore Santa Monica Pier',
+      'Visit Getty Center',
+      'Walk through Beverly Hills',
+      'Explore Hollywood Walk of Fame',
+      'Visit LACMA museum',
+      'Walk through Echo Park',
+      'Visit Huntington Library',
+      'Explore Downtown Arts District'
+    ],
+    'Chicago': [
+      'Walk along Lake Michigan',
+      'Visit Millennium Park',
+      'Explore Navy Pier',
+      'Visit Art Institute of Chicago',
+      'Walk Magnificent Mile',
+      'Visit Willis Tower Skydeck',
+      'Explore Wicker Park',
+      'Visit Lincoln Park Zoo',
+      'Walk through Riverwalk',
+      'Explore Chinatown together'
+    ],
+    'Miami': [
+      'Walk South Beach boardwalk',
+      'Visit Vizcaya Museum',
+      'Explore Wynwood Arts District',
+      'Visit Little Havana',
+      'Walk through Coconut Grove',
+      'Visit Bayside Marketplace',
+      'Explore Design District',
+      'Visit Fairchild Tropical Garden',
+      'Walk through Coral Gables',
+      'Explore Brickell together'
+    ]
+  };
+
+  const ideas = cityDateIdeas[city] || [
+    'Visit local museums together',
+    'Explore downtown area',
+    'Try local restaurants',
+    'Visit city parks',
+    'Explore local markets',
+    'Walk through historic districts',
+    'Visit local landmarks',
+    'Try local coffee shops',
+    'Explore art galleries',
+    'Visit local attractions'
+  ];
+
+  return (
+    <div className="box-border content-stretch flex flex-col gap-2.5 items-start justify-start p-0 relative shrink-0 w-full">
+      <div className="h-[38px] relative shrink-0 w-full flex items-center justify-center">
+        <div className="flex flex-col font-futura-condensed-extra-bold font-futura-fallback justify-center items-center leading-[0] not-italic text-[#252424] text-[16px] text-center text-nowrap">
+          <p className="block leading-[normal]">Date Ideas in {city}</p>
+        </div>
+        <div
+          aria-hidden="true"
+          className="absolute border border-[#000000] border-solid inset-0 pointer-events-none"
+        />
+      </div>
+      
+      <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
+        <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[14px] text-left w-full">
+          <div className="space-y-0">
+            {ideas.map((idea, index) => (
+              <div key={index}>
+                <div className="flex items-center gap-2 py-2">
+                  <input 
+                    type="checkbox" 
+                    className="w-3 h-3 text-[#6b6969] border border-gray-300 rounded focus:ring-0 focus:ring-offset-0"
+                  />
+                  <p className="block leading-[normal]">{idea}</p>
+                </div>
+                {index < ideas.length - 1 && (
+                  <div className="h-0 relative shrink-0 w-full">
+                    <div className="absolute bottom-0 left-0 right-0 top-[-1px]">
+                      <svg
+                        className="block size-full"
+                        fill="none"
+                        preserveAspectRatio="none"
+                        viewBox="0 0 331 1"
+                      >
+                        <line
+                          stroke="var(--stroke-0, black)"
+                          strokeDasharray="2,2"
+                          x2="100%"
+                          y1="0.5"
+                          y2="0.5"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="h-0 relative shrink-0 w-full mt-3">
+          <div className="absolute bottom-0 left-0 right-0 top-[-1px]">
+            <svg
+              className="block size-full"
+              fill="none"
+              preserveAspectRatio="none"
+              viewBox="0 0 331 1"
+            >
+              <line
+                stroke="var(--stroke-0, black)"
+                x2="100%"
+                y1="0.5"
+                y2="0.5"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityChange: (city: string) => void; usCities: string[]; onAddPostClick: () => void }) {
   const today = new Date();
   const dateString = today.toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -794,13 +967,24 @@ function NewspaperHeader({ onCityChange, usCities }: { onCityChange: () => void;
   
   const handleCityChange = (city: string) => {
     setSelectedCity(city);
-    onCityChange();
+    onCityChange(city);
   };
 
   return (
     <div className="box-border content-stretch flex flex-col gap-[18px] items-center justify-start p-0 relative shrink-0 w-full">
-      <div className="flex flex-col font-['NYTImperial',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px] w-full px-4">
-        <p className="block leading-[normal]">what are you looking for?</p>
+      <div className="relative w-full px-4">
+        <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px]">
+          <p className="block leading-[normal]">what are you looking for?</p>
+        </div>
+        <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0">
+          <Button
+            variant="newspaper"
+            onClick={onAddPostClick}
+            className="text-sm px-6 py-2"
+          >
+            + Add New Post
+          </Button>
+        </div>
       </div>
       
       <div className="box-border content-stretch flex flex-col gap-3 items-start justify-start p-0 relative shrink-0 w-full">
@@ -845,8 +1029,7 @@ function NewspaperHeader({ onCityChange, usCities }: { onCityChange: () => void;
   );
 }
 
-function AddPostForm({ onAddPost }: { onAddPost: (profile: Omit<Profile, 'id' | 'createdAt'>) => void }) {
-  const [isOpen, setIsOpen] = useState(false);
+function AddPostForm({ onAddPost, isOpen, setIsOpen }: { onAddPost: (profile: Omit<Profile, 'id' | 'createdAt'>) => void; isOpen: boolean; setIsOpen: (open: boolean) => void }) {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -882,17 +1065,7 @@ function AddPostForm({ onAddPost }: { onAddPost: (profile: Omit<Profile, 'id' | 
   };
 
   if (!isOpen) {
-    return (
-      <div className="w-full flex justify-center mb-6">
-        <Button
-          variant="newspaper"
-          onClick={() => setIsOpen(true)}
-          className="text-sm px-6 py-2"
-        >
-          + Add New Post
-        </Button>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -907,7 +1080,7 @@ function AddPostForm({ onAddPost }: { onAddPost: (profile: Omit<Profile, 'id' | 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl bg-white border-2 border-black shadow-lg">
           <div className="flex justify-between items-center p-6 border-b-2 border-black">
-            <h3 className="font-['NYTImperial:Regular',_sans-serif] text-xl font-bold">Add New Post</h3>
+            <h3 className="font-nyt text-xl font-bold">Add New Post</h3>
             <Button
               variant="newspaper"
               onClick={() => setIsOpen(false)}
@@ -920,22 +1093,22 @@ function AddPostForm({ onAddPost }: { onAddPost: (profile: Omit<Profile, 'id' | 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block font-['NYTImperial:Regular',_sans-serif] text-sm font-medium mb-1">Name</label>
+                <label className="block font-nyt text-sm font-medium mb-1">Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full p-2 border border-black font-['NYTImperial:Regular',_sans-serif] text-sm"
+                  className="w-full p-2 border border-black font-nyt text-sm"
                   required
                 />
               </div>
               <div>
-                <label className="block font-['NYTImperial:Regular',_sans-serif] text-sm font-medium mb-1">Age</label>
+                <label className="block font-nyt text-sm font-medium mb-1">Age</label>
                 <input
                   type="number"
                   value={formData.age}
                   onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                  className="w-full p-2 border border-black font-['NYTImperial:Regular',_sans-serif] text-sm"
+                  className="w-full p-2 border border-black font-nyt text-sm"
                   min="18"
                   max="100"
                   required
@@ -944,35 +1117,35 @@ function AddPostForm({ onAddPost }: { onAddPost: (profile: Omit<Profile, 'id' | 
             </div>
             
             <div>
-              <label className="block font-['NYTImperial:Regular',_sans-serif] text-sm font-medium mb-1">Title</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full p-2 border border-black font-['NYTImperial:Regular',_sans-serif] text-sm"
-                required
-              />
+                          <label className="block font-nyt text-sm font-medium mb-1">Title</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full p-2 border border-black font-nyt text-sm"
+              required
+            />
             </div>
             
             <div>
-              <label className="block font-['NYTImperial:Regular',_sans-serif] text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full p-2 border border-black font-['NYTImperial:Regular',_sans-serif] text-sm h-24"
-                required
-              />
+                          <label className="block font-nyt text-sm font-medium mb-1">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full p-2 border border-black font-nyt text-sm h-24"
+              required
+            />
             </div>
             
             <div>
-              <label className="block font-['NYTImperial:Regular',_sans-serif] text-sm font-medium mb-1">Interests (comma-separated)</label>
-              <input
-                type="text"
-                value={formData.interests}
-                onChange={(e) => setFormData(prev => ({ ...prev, interests: e.target.value }))}
-                className="w-full p-2 border border-black font-['NYTImperial:Regular',_sans-serif] text-sm"
-                placeholder="e.g., Cooking, Science, Travel"
-              />
+                          <label className="block font-nyt text-sm font-medium mb-1">Interests (comma-separated)</label>
+            <input
+              type="text"
+              value={formData.interests}
+              onChange={(e) => setFormData(prev => ({ ...prev, interests: e.target.value }))}
+              className="w-full p-2 border border-black font-nyt text-sm"
+              placeholder="e.g., Cooking, Science, Travel"
+            />
             </div>
             
             <div className="flex justify-end pt-4">
@@ -1002,10 +1175,11 @@ function VerticalDivider() {
 }
 
 export default function App() {
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [currentCity, setCurrentCity] = useState('San Francisco');
+  const [isAddPostOpen, setIsAddPostOpen] = useState(false);
   
-  // Top 20 US cities
-  const usCities = [
+  // Top 20 US cities - memoized to prevent recreation on every render
+  const usCities = useMemo(() => [
     'New York',
     'Los Angeles',
     'Chicago',
@@ -1026,41 +1200,86 @@ export default function App() {
     'Seattle',
     'Denver',
     'Washington'
-  ];
+  ], []);
   
-  // Generate random posts for different cities
-  const generateAllPosts = () => {
+  // Generate exactly 15 posts for each city - memoized to prevent regeneration
+  const generateAllPosts = useCallback(() => {
     const allPosts: Profile[] = [];
     
-    // Generate random number of posts for each city (3-8 posts per city)
-    // Cities with specific templates get 3-8 posts, others get 2-5 posts
+    // Generate exactly 15 posts for each city with templates
     Object.keys(cityTemplates).forEach(city => {
-      const postCount = Math.floor(Math.random() * 6) + 3; // 3-8 posts
-      const cityPosts = generateCityPosts(city, postCount);
+      const cityPosts = generateCityPosts(city, 15);
       allPosts.push(...cityPosts);
     });
     
-    // Add posts for remaining cities in the top 20 list
+    // Generate exactly 15 posts for remaining cities in the top 20 list
     const remainingCities = usCities.filter(city => !cityTemplates[city as keyof typeof cityTemplates]);
     remainingCities.forEach((city: string) => {
-      const postCount = Math.floor(Math.random() * 4) + 2; // 2-5 posts
-      const cityPosts = generateCityPosts(city, postCount);
+      const cityPosts = generateCityPosts(city, 15);
       allPosts.push(...cityPosts);
     });
     
     // Shuffle posts randomly
     return allPosts.sort(() => Math.random() - 0.5);
+  }, [usCities]);
+
+  // Helper functions for localStorage
+  const saveProfilesToStorage = (profilesToSave: Profile[]) => {
+    try {
+      localStorage.setItem('newspaperDatingProfiles', JSON.stringify(profilesToSave));
+    } catch (error) {
+      console.error('Failed to save profiles to localStorage:', error);
+    }
   };
 
-  const [profiles, setProfiles] = useState<Profile[]>(() => generateAllPosts());
+  const loadProfilesFromStorage = (): Profile[] | null => {
+    try {
+      const stored = localStorage.getItem('newspaperDatingProfiles');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Convert date strings back to Date objects
+        return parsed.map((profile: any) => ({
+          ...profile,
+          createdAt: new Date(profile.createdAt),
+          comments: profile.comments.map((comment: any) => ({
+            ...comment,
+            createdAt: new Date(comment.createdAt)
+          }))
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load profiles from localStorage:', error);
+    }
+    return null;
+  };
+
+  const [profiles, setProfiles] = useState<Profile[]>(() => {
+    const storedProfiles = loadProfilesFromStorage();
+    return storedProfiles || generateAllPosts();
+  });
   
-  // Regenerate posts when refreshKey changes (city change)
+  const [postsInitialized, setPostsInitialized] = useState(false);
+  
+  // Save profiles to localStorage whenever they change
   useEffect(() => {
-    setProfiles(generateAllPosts());
-  }, [refreshKey]);
+    saveProfilesToStorage(profiles);
+  }, [profiles]);
+  
+  // Initialize posts only once, then preserve them
+  useEffect(() => {
+    if (!postsInitialized) {
+      const storedProfiles = loadProfilesFromStorage();
+      if (storedProfiles) {
+        setProfiles(storedProfiles);
+      } else {
+        setProfiles(generateAllPosts());
+      }
+      setPostsInitialized(true);
+    }
+  }, [postsInitialized, generateAllPosts]);
 
   const addNewPost = (newProfile: Omit<Profile, 'id' | 'createdAt'>) => {
-    const newId = (profiles.length + 1).toString();
+    const newId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const newPost: Profile = {
       ...newProfile,
       id: newId,
@@ -1083,6 +1302,14 @@ export default function App() {
     ));
   };
 
+  const deletePost = (profileId: string) => {
+    setProfiles(prev => prev.filter(profile => profile.id !== profileId));
+  };
+
+  const isUserPost = (profileId: string) => {
+    return profileId.startsWith('user-');
+  };
+
   // Split profiles into columns with time-based hierarchy (latest posts first)
   const totalProfiles = profiles.length;
   const leftColumnCount = Math.ceil(totalProfiles / 3);
@@ -1096,11 +1323,18 @@ export default function App() {
   const rightColumnProfiles = sortedProfiles.slice(leftColumnCount + centerColumnCount);
 
   return (
-    <div className="bg-[#fffbfb] min-h-screen w-full">
+    <div className="bg-[#F5F5F0] min-h-screen w-full">
       <div className="flex justify-center w-full px-4 sm:px-6 lg:px-8 py-7">
         <div className="flex flex-col gap-[33px] items-center justify-start w-full max-w-[1184px]">
-          <NewspaperHeader onCityChange={() => setRefreshKey(prev => prev + 1)} usCities={usCities} />
-          <AddPostForm onAddPost={addNewPost} />
+          <NewspaperHeader 
+            onCityChange={(city) => {
+              setCurrentCity(city);
+            }} 
+            usCities={usCities}
+            onAddPostClick={() => setIsAddPostOpen(true)}
+          />
+          
+          <AddPostForm onAddPost={addNewPost} isOpen={isAddPostOpen} setIsOpen={setIsAddPostOpen} />
           
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-6 items-stretch justify-start w-full">
             {/* Left Column */}
@@ -1110,6 +1344,8 @@ export default function App() {
                   key={profile.id} 
                   profile={profile} 
                   onAddComment={addComment}
+                  onDeletePost={deletePost}
+                  isUserPost={isUserPost(profile.id)}
                 />
               ))}
             </div>
@@ -1124,12 +1360,16 @@ export default function App() {
                     key={profile.id} 
                     profile={profile} 
                     onAddComment={addComment}
+                    onDeletePost={deletePost}
+                    isUserPost={isUserPost(profile.id)}
                   />
                 ) : (
                   <ProfileCard 
                     key={profile.id} 
                     profile={profile} 
                     onAddComment={addComment}
+                    onDeletePost={deletePost}
+                    isUserPost={isUserPost(profile.id)}
                   />
                 )
               )}
@@ -1139,14 +1379,24 @@ export default function App() {
             
             {/* Right Column */}
             <div className="flex flex-col gap-[26px] items-start justify-start w-full lg:w-[331px]">
+              <DateIdeas city={currentCity} />
               {rightColumnProfiles.map((profile) => (
                 <ProfileCard 
                   key={profile.id} 
                   profile={profile} 
                   onAddComment={addComment}
+                  onDeletePost={deletePost}
+                  isUserPost={isUserPost(profile.id)}
                 />
               ))}
             </div>
+          </div>
+          
+          {/* Debug info - can be removed later */}
+          <div className="text-xs text-gray-500 mt-6 text-center">
+            Total Posts: {profiles.length} | 
+            Total Comments: {profiles.reduce((total, profile) => total + profile.comments.length, 0)} | 
+            Stored in localStorage: {localStorage.getItem('newspaperDatingProfiles') ? 'Yes' : 'No'}
           </div>
           
         </div>

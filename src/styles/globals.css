@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom font declarations */
+@font-face {
+  font-family: 'OPTIEngraversOldEnglish 2';
+  src: url('../fonts/OPTIEngraversOldEnglish%202.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Font family utilities with fallbacks */
 .font-nyt {
   font-family: 'Times New Roman', serif;
@@ -68,6 +77,11 @@
 }
 
 /* Custom font classes for better font loading */
+.font-engravers {
+  font-family: 'OPTIEngraversOldEnglish 2', 'Times New Roman', serif;
+  font-display: swap;
+}
+
 .font-futura-condensed-extra-bold {
   font-family: 'Futura Condensed Extra Bold', 'Futura Condensed ExtraBold', 'Futura Condensed', 'Futura', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 800;

@@ -7,7 +7,7 @@ const buttonVariants = (variant: string = "default", size: string = "default") =
     default: "bg-blue-600 text-white hover:bg-blue-700",
     outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
     secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300",
-    newspaper: "border border-black bg-white text-black hover:bg-gray-50 font-['NYTImperial:Regular',_sans-serif] rounded-none",
+    newspaper: "border border-black bg-transparent text-black hover:bg-gray-50 font-nyt rounded-none",
   };
   
   const sizeClasses = {
