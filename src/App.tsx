@@ -1394,10 +1394,7 @@ export default function App() {
           
           {/* Mobile Layout - Single Column Sequence */}
           <div className="flex flex-col gap-6 w-full lg:hidden">
-            {/* Date Ideas Component */}
-            <DateIdeas city={currentCity} />
-            
-            {/* Add Post Button - Mobile Only */}
+            {/* Add Post Button - Mobile Only - Above the post */}
             <div className="flex justify-center">
               <Button
                 variant="newspaper"
@@ -1420,8 +1417,11 @@ export default function App() {
               />
             )}
             
-            {/* All Other Posts */}
-            {sortedCityProfiles.slice(1).map((profile) => (
+            {/* Date Ideas Component */}
+            <DateIdeas city={currentCity} />
+            
+            {/* All Posts (including the first one) */}
+            {sortedCityProfiles.map((profile) => (
               <ProfileCard 
                 key={profile.id} 
                 profile={profile} 
