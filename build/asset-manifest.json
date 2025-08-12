@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/static/css/main.a50f81cc.css",
-    "main.js": "/static/js/main.ed944fb7.js",
+    "main.js": "/static/js/main.f604d94d.js",
     "static/media/OPTIEngraversOldEnglish 2.otf": "/static/media/OPTIEngraversOldEnglish 2.5f68820823f695610b13.otf",
     "index.html": "/index.html",
     "main.a50f81cc.css.map": "/static/css/main.a50f81cc.css.map",
-    "main.ed944fb7.js.map": "/static/js/main.ed944fb7.js.map"
+    "main.f604d94d.js.map": "/static/js/main.f604d94d.js.map"
   },
   "entrypoints": [
     "static/css/main.a50f81cc.css",
-    "static/js/main.ed944fb7.js"
+    "static/js/main.f604d94d.js"
   ]
 }

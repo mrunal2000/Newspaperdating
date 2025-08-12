@@ -1270,7 +1270,10 @@ export default function App() {
   const loadProfilesFromStorage = (): Profile[] | null => {
     try {
       const stored = localStorage.getItem('newspaperDatingProfiles');
-      if (stored) {
+      const version = localStorage.getItem('newspaperDatingVersion');
+      const currentVersion = '2.0'; // Version for 20 posts per city
+      
+      if (stored && version === currentVersion) {
         const parsed = JSON.parse(stored);
         // Convert date strings back to Date objects
         return parsed.map((profile: any) => ({
@@ -1281,6 +1284,11 @@ export default function App() {
             createdAt: new Date(comment.createdAt)
           }))
         }));
+      } else {
+        // Clear old data and return null to force regeneration
+        localStorage.removeItem('newspaperDatingProfiles');
+        localStorage.setItem('newspaperDatingVersion', currentVersion);
+        return null;
       }
     } catch (error) {
       console.error('Failed to load profiles from localStorage:', error);
@@ -1345,17 +1353,23 @@ export default function App() {
     return profileId.startsWith('user-');
   };
 
-  // Split profiles into columns with time-based hierarchy (latest posts first)
-  const totalProfiles = profiles.length;
-  const leftColumnCount = Math.ceil(totalProfiles / 3);
-  const centerColumnCount = Math.ceil((totalProfiles - leftColumnCount) / 2);
+  // Filter profiles by current city
+  const cityProfiles = profiles.filter(profile => 
+    profile.location.startsWith(currentCity + ',') || 
+    profile.location === currentCity
+  );
+  
+  // Split city-specific profiles into columns with time-based hierarchy (latest posts first)
+  const totalCityProfiles = cityProfiles.length;
+  const leftColumnCount = Math.ceil(totalCityProfiles / 3);
+  const centerColumnCount = Math.ceil((totalCityProfiles - leftColumnCount) / 2);
   
   // Sort profiles by creation time (newest first) and distribute across columns
-  const sortedProfiles = [...profiles].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const sortedCityProfiles = [...cityProfiles].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   
-  const leftColumnProfiles = sortedProfiles.slice(0, leftColumnCount);
-  const centerColumnProfiles = sortedProfiles.slice(leftColumnCount, leftColumnCount + centerColumnCount);
-  const rightColumnProfiles = sortedProfiles.slice(leftColumnCount + centerColumnCount);
+  const leftColumnProfiles = sortedCityProfiles.slice(0, leftColumnCount);
+  const centerColumnProfiles = sortedCityProfiles.slice(leftColumnCount, leftColumnCount + centerColumnCount);
+  const rightColumnProfiles = sortedCityProfiles.slice(leftColumnCount + centerColumnCount);
 
   return (
     <div className="bg-[#F5F5F0] min-h-screen w-full">
@@ -1427,11 +1441,16 @@ export default function App() {
             </div>
           </div>
           
+
+          
           {/* Debug info - can be removed later */}
           <div className="text-xs text-gray-500 mt-6 text-center">
+            Current City: {currentCity} | 
+            City Posts: {cityProfiles.length} | 
             Total Posts: {profiles.length} | 
             Total Comments: {profiles.reduce((total, profile) => total + profile.comments.length, 0)} | 
-            Stored in localStorage: {localStorage.getItem('newspaperDatingProfiles') ? 'Yes' : 'No'}
+            Stored in localStorage: {localStorage.getItem('newspaperDatingProfiles') ? 'Yes' : 'No'} | 
+            Version: {localStorage.getItem('newspaperDatingVersion') || 'None'}
           </div>
           
         </div>
