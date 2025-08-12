@@ -938,7 +938,9 @@ function DateIdeas({ city }: { city: string }) {
                 <div className="flex items-center gap-2 py-2">
                   <input 
                     type="checkbox" 
-                    className="w-3 h-3 text-[#6b6969] border border-gray-300 rounded focus:ring-0 focus:ring-offset-0"
+                    disabled
+                    readOnly
+                    className="w-3 h-3 text-[#6b6969] border border-gray-300 rounded focus:ring-0 focus:ring-offset-0 cursor-default opacity-60"
                   />
                   <p className="block leading-[normal]">{idea}</p>
                 </div>
