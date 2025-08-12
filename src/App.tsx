@@ -639,7 +639,7 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost,
               <img 
                 src={`/${currentCity}.jpg`}
                 alt={`${currentCity} Profile`} 
-                className="w-full h-full object-cover filter grayscale contrast-125 brightness-90"
+                className="w-full h-full object-cover filter grayscale contrast-125 brightness-90 sepia-20 hue-rotate-15 saturate-150"
                 onError={(e) => {
                   // Fallback to generic image if city-specific image doesn't exist
                   e.currentTarget.src = '/900x0.jpg';
