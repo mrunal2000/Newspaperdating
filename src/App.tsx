@@ -1018,7 +1018,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityCha
         <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px]">
           <p className="block leading-[normal]">what are you looking for?</p>
         </div>
-        <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0">
+        <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0 hidden lg:block">
           <Button
             variant="newspaper"
             onClick={onAddPostClick}
@@ -1392,9 +1392,50 @@ export default function App() {
           
           <AddPostForm onAddPost={addNewPost} isOpen={isAddPostOpen} setIsOpen={setIsAddPostOpen} />
           
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-6 items-stretch justify-start w-full">
+          {/* Mobile Layout - Single Column Sequence */}
+          <div className="flex flex-col gap-6 w-full lg:hidden">
+            {/* Date Ideas Component */}
+            <DateIdeas city={currentCity} />
+            
+            {/* Add Post Button - Mobile Only */}
+            <div className="flex justify-center">
+              <Button
+                variant="newspaper"
+                onClick={() => setIsAddPostOpen(true)}
+                className="text-sm px-6 py-2"
+              >
+                + Add New Post
+              </Button>
+            </div>
+            
+            {/* Featured Image Post (First post with image) */}
+            {centerColumnProfiles.length > 0 && (
+              <ProfileCardWithImage 
+                key={centerColumnProfiles[0].id} 
+                profile={centerColumnProfiles[0]} 
+                onAddComment={addComment}
+                onDeletePost={deletePost}
+                isUserPost={isUserPost(centerColumnProfiles[0].id)}
+                currentCity={currentCity}
+              />
+            )}
+            
+            {/* All Other Posts */}
+            {sortedCityProfiles.slice(1).map((profile) => (
+              <ProfileCard 
+                key={profile.id} 
+                profile={profile} 
+                onAddComment={addComment}
+                onDeletePost={deletePost}
+                isUserPost={isUserPost(profile.id)}
+              />
+            ))}
+          </div>
+          
+          {/* Desktop Layout - Three Columns */}
+          <div className="hidden lg:flex flex-row gap-6 items-stretch justify-start w-full">
             {/* Left Column */}
-            <div className="flex flex-col gap-7 items-start justify-start w-full lg:w-[321px] mb-8 lg:mb-0">
+            <div className="flex flex-col gap-7 items-start justify-start w-full lg:w-[321px]">
               {leftColumnProfiles.map((profile) => (
                 <ProfileCard 
                   key={profile.id} 
@@ -1409,7 +1450,7 @@ export default function App() {
             <VerticalDivider />
             
             {/* Center Column */}
-            <div className="flex flex-col gap-[30px] items-start justify-start w-full lg:w-[436px] mb-8 lg:mb-0">
+            <div className="flex flex-col gap-[30px] items-start justify-start w-full lg:w-[436px]">
               {centerColumnProfiles.map((profile, index) => 
                 index === 0 ? (
                   <ProfileCardWithImage 
