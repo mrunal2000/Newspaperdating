@@ -602,11 +602,12 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
   );
 }
 
-function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost }: { 
+function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost, currentCity }: { 
   profile: Profile; 
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
   onDeletePost: (profileId: string) => void;
   isUserPost: boolean;
+  currentCity: string;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -636,9 +637,13 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost 
           ) : (
             <div className="absolute flex items-center justify-center h-[284px] left-0 top-0 w-full bg-gray-100">
               <img 
-                src="/900x0.jpg" 
-                alt="Profile" 
+                src={`/${currentCity}.jpg`}
+                alt={`${currentCity} Profile`} 
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to generic image if city-specific image doesn't exist
+                  e.currentTarget.src = '/900x0.jpg';
+                }}
               />
             </div>
           )}
@@ -1413,6 +1418,7 @@ export default function App() {
                     onAddComment={addComment}
                     onDeletePost={deletePost}
                     isUserPost={isUserPost(profile.id)}
+                    currentCity={currentCity}
                   />
                 ) : (
                   <ProfileCard 
