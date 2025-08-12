@@ -292,8 +292,26 @@ function generateCityPosts(city: string, count: number): Profile[] {
     };
     
     const posts: Profile[] = [];
+    
+    // Create arrays to track used names and ensure uniqueness
+    const usedNames = new Set<string>();
+    const availableNames = [...fallbackTemplate.names];
+    
     for (let i = 0; i < count; i++) {
-      const randomName = fallbackTemplate.names[Math.floor(Math.random() * fallbackTemplate.names.length)];
+      let randomName: string;
+      
+      // If we've used all available names, reset the used names set
+      if (usedNames.size >= availableNames.length) {
+        usedNames.clear();
+      }
+      
+      // Find an unused name
+      do {
+        randomName = availableNames[Math.floor(Math.random() * availableNames.length)];
+      } while (usedNames.has(randomName));
+      
+      usedNames.add(randomName);
+      
       const randomTitle = fallbackTemplate.titles[Math.floor(Math.random() * fallbackTemplate.titles.length)];
       const randomDescription = fallbackTemplate.descriptions[Math.floor(Math.random() * fallbackTemplate.descriptions.length)];
       const randomInterests = fallbackTemplate.interests[Math.floor(Math.random() * fallbackTemplate.interests.length)];
@@ -316,8 +334,25 @@ function generateCityPosts(city: string, count: number): Profile[] {
   const posts: Profile[] = [];
   const template = templates[0]; // Use first template for now
   
+  // Create arrays to track used names and ensure uniqueness
+  const usedNames = new Set<string>();
+  const availableNames = [...template.names];
+  
   for (let i = 0; i < count; i++) {
-    const randomName = template.names[Math.floor(Math.random() * template.names.length)];
+    let randomName: string;
+    
+    // If we've used all available names, reset the used names set
+    if (usedNames.size >= availableNames.length) {
+      usedNames.clear();
+    }
+    
+    // Find an unused name
+    do {
+      randomName = availableNames[Math.floor(Math.random() * availableNames.length)];
+    } while (usedNames.has(randomName));
+    
+    usedNames.add(randomName);
+    
     const randomTitle = template.titles[Math.floor(Math.random() * template.titles.length)];
     const randomDescription = template.descriptions[Math.floor(Math.random() * template.descriptions.length)];
     const randomInterests = template.interests[Math.floor(Math.random() * template.interests.length)];
@@ -1202,20 +1237,20 @@ export default function App() {
     'Washington'
   ], []);
   
-  // Generate exactly 15 posts for each city - memoized to prevent regeneration
+  // Generate exactly 20 posts for each city - memoized to prevent regeneration
   const generateAllPosts = useCallback(() => {
     const allPosts: Profile[] = [];
     
-    // Generate exactly 15 posts for each city with templates
+    // Generate exactly 20 posts for each city with templates
     Object.keys(cityTemplates).forEach(city => {
-      const cityPosts = generateCityPosts(city, 15);
+      const cityPosts = generateCityPosts(city, 20);
       allPosts.push(...cityPosts);
     });
     
-    // Generate exactly 15 posts for remaining cities in the top 20 list
+    // Generate exactly 20 posts for remaining cities in the top 20 list
     const remainingCities = usCities.filter(city => !cityTemplates[city as keyof typeof cityTemplates]);
     remainingCities.forEach((city: string) => {
-      const cityPosts = generateCityPosts(city, 15);
+      const cityPosts = generateCityPosts(city, 20);
       allPosts.push(...cityPosts);
     });
     
