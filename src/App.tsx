@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
 import { Heart } from 'lucide-react';
@@ -13,6 +13,346 @@ interface Profile {
   image?: string;
   interests: string[];
   createdAt: Date;
+}
+
+// City-specific template posts
+const cityTemplates = {
+  'New York': [
+    {
+      names: ['Alex', 'Jordan', 'Sam', 'Taylor', 'Casey', 'Morgan', 'Riley', 'Quinn'],
+      titles: [
+        'Seeking Coffee & Conversation in the City',
+        'Brooklyn Artist Looking for Inspiration',
+        'Wall Street Professional Seeking Balance',
+        'Queens Foodie Wants Dining Partner',
+        'Manhattan Creative Seeks Muse'
+      ],
+      descriptions: [
+        "NYC transplant looking for someone to explore hidden coffee shops and rooftop bars with. Love discovering new neighborhoods and sharing stories over craft cocktails.",
+        "Brooklyn-based painter seeking someone who appreciates art, live music, and late-night conversations about life, love, and everything in between.",
+        "Finance professional by day, jazz enthusiast by night. Looking for someone to share weekend adventures and weekday decompression sessions.",
+        "Queens native passionate about authentic cuisine from every culture. Want to find someone to explore the city's diverse food scene with.",
+        "Creative director seeking someone who values both ambition and authenticity. Let's build something beautiful together in this crazy city."
+      ],
+      interests: [
+        ['Coffee', 'Art', 'Live Music'],
+        ['Painting', 'Jazz', 'Brooklyn'],
+        ['Finance', 'Jazz', 'Weekend Adventures'],
+        ['Food', 'Culture', 'Queens'],
+        ['Creativity', 'Ambition', 'Authenticity']
+      ]
+    }
+  ],
+  'Los Angeles': [
+    {
+      names: ['Blake', 'Skyler', 'Avery', 'Rowan', 'Sage', 'River', 'Phoenix', 'Ocean'],
+      titles: [
+        'Venice Beach Creative Seeking Sunshine Partner',
+        'Hollywood Dreamer Wants Real Connection',
+        'Silver Lake Musician Looking for Harmony',
+        'Santa Monica Tech Founder Seeks Balance',
+        'Echo Park Artist Wants to Paint Together'
+      ],
+      descriptions: [
+        "Venice Beach local who believes in the power of sunshine, creativity, and authentic connections. Let's build sandcastles and dreams together.",
+        "Hollywood isn't just about fame—it's about finding someone real in a world of make-believe. Looking for genuine connection and shared adventures.",
+        "Silver Lake musician seeking someone to harmonize with in life. Whether it's music, conversation, or just being together, let's create something beautiful.",
+        "Tech founder who believes success means nothing without someone to share it with. Looking for balance between ambition and meaningful relationships.",
+        "Echo Park artist who sees beauty in everything. Want to find someone to paint the canvas of life with, one brushstroke at a time."
+      ],
+      interests: [
+        ['Beach', 'Creativity', 'Sunshine'],
+        ['Hollywood', 'Authenticity', 'Adventure'],
+        ['Music', 'Harmony', 'Silver Lake'],
+        ['Technology', 'Success', 'Balance'],
+        ['Art', 'Beauty', 'Echo Park']
+      ]
+    }
+  ],
+  'San Francisco': [
+    {
+      names: ['Riley', 'Quinn', 'Avery', 'Blake', 'Skyler', 'Rowan', 'Sage', 'River'],
+      titles: [
+        'Mission District Foodie Seeks Culinary Partner',
+        'Marina Tech Professional Wants Work-Life Balance',
+        'North Beach Poet Looking for Muse',
+        'Hayes Valley Designer Seeks Creative Connection',
+        'Pacific Heights Professional Wants Authenticity'
+      ],
+      descriptions: [
+        "Mission District resident who believes food is love. Looking for someone to explore the city's incredible culinary scene with, from food trucks to fine dining.",
+        "Tech professional who's learned that success isn't everything. Seeking someone to help maintain work-life balance and share the beauty of the Bay Area.",
+        "North Beach poet who finds inspiration in everyday moments. Want to connect with someone who sees the poetry in life and loves deep conversations.",
+        "Hayes Valley designer seeking someone who appreciates both creativity and authenticity. Let's build something beautiful together in this amazing city.",
+        "Pacific Heights professional who values substance over status. Looking for genuine connection and someone to share the simple pleasures of life with."
+      ],
+      interests: [
+        ['Food', 'Culinary Arts', 'Mission District'],
+        ['Technology', 'Work-Life Balance', 'Bay Area'],
+        ['Poetry', 'Inspiration', 'North Beach'],
+        ['Design', 'Creativity', 'Hayes Valley'],
+        ['Authenticity', 'Simple Pleasures', 'Pacific Heights']
+      ]
+    }
+  ],
+  'Chicago': [
+    {
+      names: ['Jordan', 'Casey', 'Morgan', 'Riley', 'Quinn', 'Alex', 'Sam', 'Taylor'],
+      titles: [
+        'Wicker Park Artist Seeks Creative Soulmate',
+        'Lincoln Park Professional Wants Weekend Adventures',
+        'Lakeview Foodie Looking for Dining Partner',
+        'West Loop Entrepreneur Seeks Work-Life Harmony',
+        'Gold Coast Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Wicker Park artist who believes creativity flows from connection. Looking for someone to inspire and be inspired by in this amazing neighborhood.",
+        "Lincoln Park professional who loves exploring the city on weekends. Seeking someone to share adventures with, from museums to music venues.",
+        "Lakeview resident passionate about Chicago's incredible food scene. Want to find someone to explore new restaurants and hidden gems with.",
+        "West Loop entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "Gold Coast professional who values authenticity over appearances. Seeking someone real to share the simple pleasures of life with."
+      ],
+      interests: [
+        ['Art', 'Creativity', 'Wicker Park'],
+        ['Adventure', 'Exploration', 'Lincoln Park'],
+        ['Food', 'Restaurants', 'Lakeview'],
+        ['Entrepreneurship', 'Work-Life Balance', 'West Loop'],
+        ['Authenticity', 'Simple Pleasures', 'Gold Coast']
+      ]
+    }
+  ],
+  'Austin': [
+    {
+      names: ['Skyler', 'Rowan', 'Sage', 'River', 'Phoenix', 'Ocean', 'Blake', 'Avery'],
+      titles: [
+        'East Austin Musician Seeks Creative Partner',
+        'South Congress Foodie Wants Culinary Adventures',
+        'Downtown Tech Professional Seeks Work-Life Balance',
+        'Zilker Park Enthusiast Looking for Nature Lover',
+        'Barton Springs Local Wants Authentic Connection'
+      ],
+      descriptions: [
+        "East Austin musician who believes music is the language of the soul. Looking for someone to harmonize with in life and create beautiful melodies together.",
+        "South Congress foodie passionate about Austin's incredible culinary scene. Want to explore food trucks, farmers markets, and hidden gems together.",
+        "Downtown tech professional who's learned that success isn't everything. Seeking someone to help maintain work-life balance and enjoy Austin's unique culture.",
+        "Zilker Park enthusiast who finds peace in nature. Looking for someone to share outdoor adventures, from hiking to swimming in Barton Springs.",
+        "Barton Springs local who values authenticity and connection. Seeking someone real to share the simple pleasures of Austin life with."
+      ],
+      interests: [
+        ['Music', 'Creativity', 'East Austin'],
+        ['Food', 'Culinary Arts', 'South Congress'],
+        ['Technology', 'Work-Life Balance', 'Downtown'],
+        ['Nature', 'Outdoors', 'Zilker Park'],
+        ['Authenticity', 'Local Culture', 'Barton Springs']
+      ]
+    }
+  ],
+  'Houston': [
+    {
+      names: ['Jordan', 'Casey', 'Morgan', 'Riley', 'Quinn', 'Alex', 'Sam', 'Taylor'],
+      titles: [
+        'Montrose Artist Seeks Creative Inspiration',
+        'Rice Village Professional Wants Weekend Adventures',
+        'Heights Foodie Looking for Dining Partner',
+        'Galleria Entrepreneur Seeks Work-Life Harmony',
+        'River Oaks Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Montrose artist who finds beauty in Houston's diverse culture. Looking for someone to explore art galleries and share creative inspiration with.",
+        "Rice Village professional who loves discovering Houston's hidden gems. Seeking someone to share weekend adventures and explore the city together.",
+        "Heights resident passionate about Houston's incredible food scene. Want to find someone to explore new restaurants and food trucks with.",
+        "Galleria entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "River Oaks professional who values authenticity over appearances. Seeking someone real to share the simple pleasures of Houston life with."
+      ],
+      interests: [
+        ['Art', 'Creativity', 'Montrose'],
+        ['Adventure', 'Exploration', 'Rice Village'],
+        ['Food', 'Restaurants', 'Heights'],
+        ['Entrepreneurship', 'Work-Life Balance', 'Galleria'],
+        ['Authenticity', 'Simple Pleasures', 'River Oaks']
+      ]
+    }
+  ],
+  'Phoenix': [
+    {
+      names: ['Blake', 'Skyler', 'Avery', 'Rowan', 'Sage', 'River', 'Phoenix', 'Ocean'],
+      titles: [
+        'Scottsdale Creative Seeks Sunshine Partner',
+        'Downtown Phoenix Professional Wants Real Connection',
+        'Tempe Musician Looking for Harmony',
+        'Chandler Tech Professional Seeks Balance',
+        'Gilbert Local Wants to Explore Together'
+      ],
+      descriptions: [
+        "Scottsdale creative who believes in the power of sunshine and authentic connections. Let's explore the desert and build dreams together.",
+        "Downtown Phoenix professional seeking someone real in the Valley of the Sun. Looking for genuine connection and shared adventures.",
+        "Tempe musician seeking someone to harmonize with in life. Whether it's music, conversation, or just being together, let's create something beautiful.",
+        "Chandler tech professional who believes success means nothing without someone to share it with. Looking for balance between ambition and meaningful relationships.",
+        "Gilbert local who sees beauty in the desert landscape. Want to find someone to explore Arizona's natural wonders with."
+      ],
+      interests: [
+        ['Desert', 'Creativity', 'Scottsdale'],
+        ['Downtown', 'Authenticity', 'Adventure'],
+        ['Music', 'Harmony', 'Tempe'],
+        ['Technology', 'Success', 'Balance'],
+        ['Nature', 'Beauty', 'Gilbert']
+      ]
+    }
+  ],
+  'Philadelphia': [
+    {
+      names: ['Riley', 'Quinn', 'Avery', 'Blake', 'Skyler', 'Rowan', 'Sage', 'River'],
+      titles: [
+        'Fishtown Artist Seeks Creative Soulmate',
+        'Rittenhouse Professional Wants Weekend Adventures',
+        'South Philly Foodie Looking for Dining Partner',
+        'University City Entrepreneur Seeks Work-Life Harmony',
+        'Old City Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Fishtown artist who believes creativity flows from connection. Looking for someone to inspire and be inspired by in this amazing neighborhood.",
+        "Rittenhouse professional who loves exploring Philly on weekends. Seeking someone to share adventures with, from museums to music venues.",
+        "South Philly resident passionate about Philadelphia's incredible food scene. Want to find someone to explore new restaurants and hidden gems with.",
+        "University City entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "Old City professional who values authenticity over appearances. Seeking someone real to share the simple pleasures of Philadelphia life with."
+      ],
+      interests: [
+        ['Art', 'Creativity', 'Fishtown'],
+        ['Adventure', 'Exploration', 'Rittenhouse'],
+        ['Food', 'Restaurants', 'South Philly'],
+        ['Entrepreneurship', 'Work-Life Balance', 'University City'],
+        ['Authenticity', 'Simple Pleasures', 'Old City']
+      ]
+    }
+  ],
+  'San Antonio': [
+    {
+      names: ['Jordan', 'Casey', 'Morgan', 'Riley', 'Quinn', 'Alex', 'Sam', 'Taylor'],
+      titles: [
+        'Pearl District Creative Seeks Inspiration',
+        'King William Professional Wants Weekend Adventures',
+        'Southtown Foodie Looking for Dining Partner',
+        'Stone Oak Entrepreneur Seeks Work-Life Harmony',
+        'Alamo Heights Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Pearl District creative who finds inspiration in San Antonio's rich culture. Looking for someone to explore art galleries and share creative moments with.",
+        "King William professional who loves discovering San Antonio's hidden gems. Seeking someone to share weekend adventures and explore the city together.",
+        "Southtown resident passionate about San Antonio's incredible food scene. Want to find someone to explore new restaurants and food trucks with.",
+        "Stone Oak entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "Alamo Heights professional who values authenticity over appearances. Seeking someone real to share the simple pleasures of San Antonio life with."
+      ],
+      interests: [
+        ['Art', 'Creativity', 'Pearl District'],
+        ['Adventure', 'Exploration', 'King William'],
+        ['Food', 'Restaurants', 'Southtown'],
+        ['Entrepreneurship', 'Work-Life Balance', 'Stone Oak'],
+        ['Authenticity', 'Simple Pleasures', 'Alamo Heights']
+      ]
+    }
+  ]
+};
+
+// Generate random posts for a city
+function generateCityPosts(city: string, count: number): Profile[] {
+  const templates = cityTemplates[city as keyof typeof cityTemplates];
+  if (!templates) {
+    // Fallback template for cities without specific templates
+    const fallbackTemplate = {
+      names: ['Alex', 'Jordan', 'Sam', 'Taylor', 'Casey', 'Morgan', 'Riley', 'Quinn'],
+      titles: [
+        'Seeking Connection in the City',
+        'Professional Looking for Balance',
+        'Creative Seeks Inspiration',
+        'Local Wants to Explore Together',
+        'Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "City resident looking for someone to explore local attractions and share meaningful conversations with. Love discovering new places and building genuine connections.",
+        "Professional seeking someone who appreciates both ambition and authenticity. Looking for work-life balance and meaningful relationships.",
+        "Creative soul seeking someone to inspire and be inspired by. Want to build something beautiful together in this amazing city.",
+        "Local who loves exploring the city's hidden gems. Looking for someone to share adventures and discover new experiences with.",
+        "Professional who values substance over status. Seeking genuine connection and someone to share the simple pleasures of life with."
+      ],
+      interests: [
+        ['Exploration', 'Connection', 'Local Culture'],
+        ['Professional Growth', 'Balance', 'Authenticity'],
+        ['Creativity', 'Inspiration', 'Art'],
+        ['Adventure', 'Discovery', 'Local Gems'],
+        ['Authenticity', 'Simple Pleasures', 'Connection']
+      ]
+    };
+    
+    const posts: Profile[] = [];
+    for (let i = 0; i < count; i++) {
+      const randomName = fallbackTemplate.names[Math.floor(Math.random() * fallbackTemplate.names.length)];
+      const randomTitle = fallbackTemplate.titles[Math.floor(Math.random() * fallbackTemplate.titles.length)];
+      const randomDescription = fallbackTemplate.descriptions[Math.floor(Math.random() * fallbackTemplate.descriptions.length)];
+      const randomInterests = fallbackTemplate.interests[Math.floor(Math.random() * fallbackTemplate.interests.length)];
+      
+      posts.push({
+        id: `${city}-${i + 1}`,
+        name: randomName,
+        age: Math.floor(Math.random() * 15) + 25, // 25-40
+        title: randomTitle,
+        location: `${city}, ${getStateFromCity(city)}`,
+        description: randomDescription,
+        interests: randomInterests,
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // Random time in last 7 days
+      });
+    }
+    return posts;
+  }
+  
+  const posts: Profile[] = [];
+  const template = templates[0]; // Use first template for now
+  
+  for (let i = 0; i < count; i++) {
+    const randomName = template.names[Math.floor(Math.random() * template.names.length)];
+    const randomTitle = template.titles[Math.floor(Math.random() * template.titles.length)];
+    const randomDescription = template.descriptions[Math.floor(Math.random() * template.descriptions.length)];
+    const randomInterests = template.interests[Math.floor(Math.random() * template.interests.length)];
+    
+    posts.push({
+      id: `${city}-${i + 1}`,
+      name: randomName,
+      age: Math.floor(Math.random() * 15) + 25, // 25-40
+      title: randomTitle,
+              location: `${city}, ${getStateFromCity(city)}`,
+      description: randomDescription,
+      interests: randomInterests,
+      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // Random time in last 7 days
+    });
+  }
+  
+  return posts;
+}
+
+// Get state abbreviation for cities
+function getStateFromCity(city: string): string {
+  const stateMap: { [key: string]: string } = {
+    'New York': 'NY',
+    'Los Angeles': 'CA',
+    'San Francisco': 'CA',
+    'Chicago': 'IL',
+    'Austin': 'TX',
+    'Houston': 'TX',
+    'Phoenix': 'AZ',
+    'Philadelphia': 'PA',
+    'San Antonio': 'TX',
+    'San Diego': 'CA',
+    'Dallas': 'TX',
+    'San Jose': 'CA',
+    'Jacksonville': 'FL',
+    'Fort Worth': 'TX',
+    'Columbus': 'OH',
+    'Charlotte': 'NC',
+    'Indianapolis': 'IN',
+    'Seattle': 'WA',
+    'Denver': 'CO',
+    'Washington': 'DC'
+  };
+  return stateMap[city] || 'CA';
 }
 
 function formatTimestamp(date: Date): string {
@@ -39,7 +379,7 @@ function ProfileCard({ profile }: {
     <div className="box-border content-stretch flex flex-col gap-2.5 items-start justify-start p-0 relative shrink-0 w-full">
       <div className="h-[38px] relative shrink-0 w-[100px] flex items-center justify-center">
         <div className="h-[38px] w-[100px] flex items-center justify-center">
-          <div className="flex flex-col font-['NYTImperial:Regular',_sans-serif] justify-center items-center leading-[0] not-italic text-[#252424] text-[16px] text-center text-nowrap">
+          <div className="flex flex-col font-nyt justify-center items-center leading-[0] not-italic text-[#252424] text-[16px] text-center text-nowrap">
             <p className="block leading-[normal] whitespace-pre">{profile.name},{profile.age}</p>
           </div>
         </div>
@@ -53,7 +393,7 @@ function ProfileCard({ profile }: {
         <div className="flex flex-col font-futura-condensed-extra-bold font-futura-fallback justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
           <p className="block leading-[normal]">{profile.title}</p>
         </div>
-        <div className="flex flex-col font-['NYTImperial:Regular',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[16px] text-left w-full">
+        <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[16px] text-left w-full">
           <p className="block leading-[normal]">{profile.location}</p>
         </div>
         <div className="h-0 relative shrink-0 w-full">
@@ -74,19 +414,19 @@ function ProfileCard({ profile }: {
             </svg>
           </div>
         </div>
-        <div className="flex flex-col font-['NYTImperial',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
+        <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[16px] text-left w-full">
           <p className="block leading-[normal]">{profile.description}</p>
         </div>
         
         {/* Timestamp */}
-        <div className="flex flex-col font-['NYTImperial:Regular',_sans-serif] justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[12px] text-left w-full mt-2">
+        <div className="flex flex-col font-nyt justify-end leading-[0] not-italic relative shrink-0 text-[#6b6969] text-[12px] text-left w-full mt-2">
           <p className="block leading-[normal]">{formatTimestamp(profile.createdAt)}</p>
         </div>
         
         {/* Interest tags */}
         <div className="flex flex-wrap gap-1 mt-2">
           {profile.interests.map((interest, index) => (
-            <Badge key={index} variant="outline" className="text-xs font-['NYTImperial:Regular',_sans-serif]">
+            <Badge key={index} variant="outline" className="text-xs font-nyt">
               {interest}
             </Badge>
           ))}
@@ -277,7 +617,7 @@ function NewspaperDivider() {
   );
 }
 
-function NewspaperHeader() {
+function NewspaperHeader({ onCityChange, usCities }: { onCityChange: () => void; usCities: string[] }) {
   const today = new Date();
   const dateString = today.toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -288,165 +628,10 @@ function NewspaperHeader() {
 
   const [selectedCity, setSelectedCity] = useState('San Francisco');
   
-  const usCities = [
-    'New York',
-    'Los Angeles',
-    'Chicago',
-    'Houston',
-    'Phoenix',
-    'Philadelphia',
-    'San Antonio',
-    'San Diego',
-    'Dallas',
-    'San Jose',
-    'Austin',
-    'Jacksonville',
-    'Fort Worth',
-    'Columbus',
-    'Charlotte',
-    'San Francisco',
-    'Indianapolis',
-    'Seattle',
-    'Denver',
-    'Washington',
-    'Boston',
-    'El Paso',
-    'Nashville',
-    'Detroit',
-    'Oklahoma City',
-    'Portland',
-    'Las Vegas',
-    'Memphis',
-    'Louisville',
-    'Baltimore',
-    'Milwaukee',
-    'Albuquerque',
-    'Tucson',
-    'Fresno',
-    'Sacramento',
-    'Mesa',
-    'Kansas City',
-    'Atlanta',
-    'Long Beach',
-    'Colorado Springs',
-    'Raleigh',
-    'Miami',
-    'Virginia Beach',
-    'Omaha',
-    'Oakland',
-    'Minneapolis',
-    'Tampa',
-    'Tulsa',
-    'Arlington',
-    'New Orleans',
-    'Wichita',
-    'Cleveland',
-    'Bakersfield',
-    'Aurora',
-    'Anaheim',
-    'Honolulu',
-    'Santa Ana',
-    'Corpus Christi',
-    'Riverside',
-    'Lexington',
-    'Stockton',
-    'Henderson',
-    'Saint Paul',
-    'St. Louis',
-    'Fort Wayne',
-    'Jersey City',
-    'Chandler',
-    'Madison',
-    'Lubbock',
-    'Scottsdale',
-    'Reno',
-    'Buffalo',
-    'Gilbert',
-    'Glendale',
-    'North Las Vegas',
-    'Fremont',
-    'Boise',
-    'Richmond',
-    'Winston-Salem',
-    'Santa Rosa',
-    'Yonkers',
-    'Hialeah',
-    'Seattle',
-    'Spokane',
-    'Tacoma',
-    'Vancouver',
-    'Bellevue',
-    'Kent',
-    'Everett',
-    'Yakima',
-    'Renton',
-    'Spokane Valley',
-    'Federal Way',
-    'Bellingham',
-    'Kennewick',
-    'Auburn',
-    'Pasco',
-    'Marysville',
-    'Lakewood',
-    'Redmond',
-    'Shoreline',
-    'Richland',
-    'Kirkland',
-    'Burien',
-    'Sammamish',
-    'Olympia',
-    'Lacey',
-    'Edmonds',
-    'Bremerton',
-    'Puyallup',
-    'Kenmore',
-    'Issaquah',
-    'Tumwater',
-    'Mount Vernon',
-    'Walla Walla',
-    'Pullman',
-    'Ellensburg',
-    'Cheney',
-    'Centralia',
-    'Aberdeen',
-    'Hoquiam',
-    'Port Angeles',
-    'Sequim',
-    'Port Townsend',
-    'Anacortes',
-    'Oak Harbor',
-    'Coupeville',
-    'Langley',
-    'Friday Harbor',
-    'Eastsound',
-    'Lopez Island',
-    'Shaw Island',
-    'Orcas Island',
-    'San Juan Island',
-    'Lummi Island',
-    'Guemes Island',
-    'Camano Island',
-    'Whidbey Island',
-    'Vashon Island',
-    'Bainbridge Island',
-    'Mercer Island',
-    'Anderson Island',
-    'Fox Island',
-    'Herron Island',
-    'McNeil Island',
-    'Blake Island',
-    'Maury Island',
-    'Vashon-Maury Island',
-    'Bainbridge Island',
-    'Mercer Island',
-    'Anderson Island',
-    'Fox Island',
-    'Herron Island',
-    'McNeil Island',
-    'Blake Island',
-    'Maury Island',
-    'Vashon-Maury Island'
-  ];
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    onCityChange();
+  };
 
   return (
     <div className="box-border content-stretch flex flex-col gap-[18px] items-center justify-start p-0 relative shrink-0 w-full">
@@ -469,14 +654,14 @@ function NewspaperHeader() {
               </span>
               <div className="relative ml-1">
                 <select
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="font-['NYTImperial:Regular',_sans-serif] text-[14px] lg:text-[16px] text-black bg-transparent border-none outline-none cursor-pointer pr-6 w-4"
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  className="font-nyt text-[14px] lg:text-[16px] text-black bg-transparent border-none outline-none cursor-pointer pr-6 w-4"
                 >
-                  <option value="" disabled selected className="font-['NYTImperial:Regular',_sans-serif] text-transparent bg-transparent">
+                  <option value="" disabled selected className="font-nyt text-transparent bg-transparent">
                     
                   </option>
                   {usCities.filter(city => city !== selectedCity).map((city) => (
-                    <option key={city} value={city} className="font-['NYTImperial:Regular',_sans-serif] text-black bg-white">
+                    <option key={city} value={city} className="font-nyt text-black bg-white">
                       {city}
                     </option>
                   ))}
@@ -652,78 +837,62 @@ function VerticalDivider() {
 }
 
 export default function App() {
-  const [profiles, setProfiles] = useState<Profile[]>([
-    {
-      id: '1',
-      name: 'Nishant',
-      age: 27,
-      title: 'Looking for Love and company',
-      location: 'San Francisco, CA',
-      description: "Looking for someone who shares my passion for culinary adventures and isn't afraid of late-night conversations about molecular gastronomy. Looking for someone who shares my passion for culinary adventures and isn't afraid of late-night conversations about molecular gastronomy. Someone who shares my passion for culinary adventures and isn't afraid of late-night conversations about molecular gastronomy.",
-      interests: ['Cooking', 'Science', 'Late-night talks'],
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-    },
-    {
-      id: '2',
-      name: 'Sarah',
-      age: 29,
-      title: 'Seeking Adventure Partner',
-      location: 'San Francisco, CA',
-      description: "Rock climbing enthusiast seeking someone who loves the outdoors as much as I do. Weekend hikes, camping under the stars, and exploring hidden trails are my idea of perfect dates. Looking for genuine connection with someone who isn't afraid of heights or getting their hands dirty.",
-      interests: ['Rock climbing', 'Hiking', 'Camping'],
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
-    },
-    {
-      id: '3',
-      name: 'Marcus',
-      age: 31,
-      title: 'Coffee Connoisseur & Book Lover',
-      location: 'San Francisco, CA',
-      description: "Third-wave coffee roaster by day, poetry reader by night. Seeking someone who appreciates the finer things in life - from perfectly extracted espresso to beautifully crafted sentences. Let's discuss Murakami over a cup of single-origin Ethiopian beans.",
-      interests: ['Coffee', 'Literature', 'Poetry'],
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
-    },
-    {
-      id: '4',
-      name: 'Elena',
-      age: 26,
-      title: 'Artist & Dreamer',
-      location: 'San Francisco, CA',
-      description: "Painter and gallery curator looking for someone who sees beauty in unexpected places. I spend my weekends at art shows, farmers markets, and trying new restaurants. Seeking a creative soul who loves deep conversations about art, life, and everything in between.",
-      interests: ['Art', 'Painting', 'Museums'],
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-    },
-    {
-      id: '5',
-      name: 'David',
-      age: 33,
-      title: 'Tech Founder & Jazz Enthusiast',
-      location: 'San Francisco, CA',
-      description: "Building the future by day, losing myself in jazz clubs by night. Looking for someone who appreciates both innovation and timeless music. Whether it's discussing startup ideas or debating the best Miles Davis album, I'm here for meaningful conversations.",
-      interests: ['Technology', 'Jazz', 'Innovation'],
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
-    },
-    {
-      id: '6',
-      name: 'Zoe',
-      age: 28,
-      title: 'Yoga Instructor & World Traveler',
-      location: 'San Francisco, CA',
-      description: "Just returned from a month in Bali and ready to share stories and create new ones. Yoga teacher seeking someone who values mindfulness, adventure, and authentic connections. Let's practice presence together, whether in warrior pose or exploring new neighborhoods.",
-      interests: ['Yoga', 'Travel', 'Mindfulness'],
-      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000) // 12 hours ago
-    },
-    {
-      id: '7',
-      name: 'Oliver',
-      age: 30,
-      title: 'Chef & Sustainability Advocate',
-      location: 'San Francisco, CA',
-      description: "Farm-to-table chef passionate about sustainable living and creating memorable dining experiences. Looking for someone who cares about where their food comes from and isn't afraid to get their hands dirty in a garden. Let's cook together and change the world, one meal at a time.",
-      interests: ['Sustainable cooking', 'Gardening', 'Environment'],
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 hours ago
-    }
-  ]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Top 20 US cities
+  const usCities = [
+    'New York',
+    'Los Angeles',
+    'Chicago',
+    'Houston',
+    'Phoenix',
+    'Philadelphia',
+    'San Antonio',
+    'San Diego',
+    'Dallas',
+    'San Jose',
+    'Austin',
+    'Jacksonville',
+    'Fort Worth',
+    'Columbus',
+    'Charlotte',
+    'San Francisco',
+    'Indianapolis',
+    'Seattle',
+    'Denver',
+    'Washington'
+  ];
+  
+  // Generate random posts for different cities
+  const generateAllPosts = () => {
+    const allPosts: Profile[] = [];
+    
+    // Generate random number of posts for each city (3-8 posts per city)
+    // Cities with specific templates get 3-8 posts, others get 2-5 posts
+    Object.keys(cityTemplates).forEach(city => {
+      const postCount = Math.floor(Math.random() * 6) + 3; // 3-8 posts
+      const cityPosts = generateCityPosts(city, postCount);
+      allPosts.push(...cityPosts);
+    });
+    
+    // Add posts for remaining cities in the top 20 list
+    const remainingCities = usCities.filter(city => !cityTemplates[city as keyof typeof cityTemplates]);
+    remainingCities.forEach((city: string) => {
+      const postCount = Math.floor(Math.random() * 4) + 2; // 2-5 posts
+      const cityPosts = generateCityPosts(city, postCount);
+      allPosts.push(...cityPosts);
+    });
+    
+    // Shuffle posts randomly
+    return allPosts.sort(() => Math.random() - 0.5);
+  };
+
+  const [profiles, setProfiles] = useState<Profile[]>(() => generateAllPosts());
+  
+  // Regenerate posts when refreshKey changes (city change)
+  useEffect(() => {
+    setProfiles(generateAllPosts());
+  }, [refreshKey]);
 
   const addNewPost = (newProfile: Omit<Profile, 'id' | 'createdAt'>) => {
     const newId = (profiles.length + 1).toString();
@@ -751,7 +920,7 @@ export default function App() {
     <div className="bg-[#fffbfb] min-h-screen w-full">
       <div className="flex justify-center w-full px-4 sm:px-6 lg:px-8 py-7">
         <div className="flex flex-col gap-[33px] items-center justify-start w-full max-w-[1184px]">
-          <NewspaperHeader />
+          <NewspaperHeader onCityChange={() => setRefreshKey(prev => prev + 1)} usCities={usCities} />
           <AddPostForm onAddPost={addNewPost} />
           
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-6 items-stretch justify-start w-full">

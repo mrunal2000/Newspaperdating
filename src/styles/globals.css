@@ -2,31 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Futura fonts */
-@import url('https://fonts.cdnfonts.com/css/futura-condensed-extra-bold');
-@import url('https://fonts.cdnfonts.com/css/futura-condensed');
-
-/* Local font declarations for better reliability */
-@font-face {
-  font-family: 'Futura Condensed Extra Bold';
-  src: local('Futura Condensed Extra Bold'),
-       local('Futura-Condensed-Extra-Bold'),
-       local('Futura Condensed ExtraBold'),
-       local('Futura-Condensed-ExtraBold');
-  font-weight: 800;
-  font-stretch: condensed;
-  font-style: normal;
+/* Font family utilities with fallbacks */
+.font-nyt {
+  font-family: 'Times New Roman', serif;
 }
 
-@font-face {
-  font-family: 'Futura Condensed';
-  src: local('Futura Condensed'),
-       local('Futura-Condensed'),
-       local('Futura Condensed Medium'),
-       local('Futura-Condensed-Medium');
-  font-weight: 500;
-  font-stretch: condensed;
-  font-style: normal;
+.font-nyt-bold {
+  font-family: 'Times New Roman', serif;
+  font-weight: 700;
+}
+
+.font-futura {
+  font-family: 'Futura', 'Arial Black', 'Arial Bold', sans-serif;
+  font-weight: 700;
+}
+
+/* Ensure fonts are loaded before display */
+.font-nyt,
+.font-nyt-bold,
+.font-futura {
+  font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));
