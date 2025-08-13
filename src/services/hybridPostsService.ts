@@ -3,6 +3,20 @@ import { shouldUseSupabase } from './supabase';
 import { Profile, Comment } from '../types';
 
 export class HybridPostsService {
+  // Check database health
+  static async checkDatabaseHealth(): Promise<{ healthy: boolean; error?: string; tables?: string[] }> {
+    try {
+      if (shouldUseSupabase()) {
+        return await PostsService.checkDatabaseHealth();
+      } else {
+        return { healthy: false, error: 'Supabase not configured' };
+      }
+    } catch (error) {
+      console.error('Database health check failed:', error);
+      return { healthy: false, error: `Health check failed: ${error}` };
+    }
+  }
+
   // Get all posts - try Supabase first, fallback to localStorage
   static async getAllPosts(): Promise<Profile[]> {
     try {

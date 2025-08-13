@@ -1458,6 +1458,16 @@ export default function App() {
       try {
         setError(null);
         
+        // Check database health first
+        console.log('🔍 Checking database health...');
+        const dbHealth = await HybridPostsService.checkDatabaseHealth();
+        console.log('Database health check result:', dbHealth);
+        
+        if (!dbHealth.healthy) {
+          console.warn('⚠️ Database health check failed:', dbHealth.error);
+          setError(`Database connection issue: ${dbHealth.error}. Posts may not persist.`);
+        }
+        
         // First try to load from localStorage for faster loading
         const storedProfiles = loadProfilesFromStorage();
         if (storedProfiles && storedProfiles.length > 0) {

@@ -2,6 +2,41 @@ import { supabase, convertDatabasePostToProfile, convertProfileToDatabasePost, D
 import { Profile, Comment } from '../types';
 
 export class PostsService {
+  // Check database health and table existence
+  static async checkDatabaseHealth(): Promise<{ healthy: boolean; error?: string; tables?: string[] }> {
+    try {
+      console.log('🔍 Checking database health...');
+      
+      // Try to read from posts table
+      const { error: postsError } = await supabase
+        .from('posts')
+        .select('id')
+        .limit(1);
+      
+      if (postsError) {
+        console.error('❌ Posts table error:', postsError);
+        return { healthy: false, error: `Posts table error: ${postsError.message}` };
+      }
+      
+      // Try to read from comments table
+      const { error: commentsError } = await supabase
+        .from('comments')
+        .select('id')
+        .limit(1);
+      
+      if (commentsError) {
+        console.error('❌ Comments table error:', commentsError);
+        return { healthy: false, error: `Comments table error: ${commentsError.message}` };
+      }
+      
+      console.log('✅ Database is healthy, tables exist');
+      return { healthy: true, tables: ['posts', 'comments'] };
+    } catch (error) {
+      console.error('❌ Database health check failed:', error);
+      return { healthy: false, error: `Health check failed: ${error}` };
+    }
+  }
+
   // Get all posts with their comments
   static async getAllPosts(): Promise<Profile[]> {
     try {
@@ -115,6 +150,7 @@ export class PostsService {
   static async createPost(profile: Omit<Profile, 'id' | 'createdAt'>): Promise<Profile> {
     try {
       const postData = convertProfileToDatabasePost(profile);
+      console.log('🔄 Attempting to create post in Supabase:', postData);
       
       const { data: newPost, error } = await supabase
         .from('posts')
@@ -122,12 +158,17 @@ export class PostsService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase insert error:', error);
+        throw error;
+      }
 
+      console.log('✅ Post created successfully in Supabase:', newPost);
+      
       // Convert back to Profile type
       return convertDatabasePostToProfile(newPost, []);
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error('❌ Error creating post:', error);
       throw error;
     }
   }
