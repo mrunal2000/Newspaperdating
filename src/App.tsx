@@ -1551,19 +1551,20 @@ export default function App() {
     return profileId.startsWith('user-');
   };
 
-  // Check if Supabase is configured
-  const isSupabaseConfigured = (): boolean => {
-    const url = process.env.REACT_APP_SUPABASE_URL;
-    const key = process.env.REACT_APP_SUPABASE_ANON_KEY;
-    return Boolean(url && key && url !== 'YOUR_SUPABASE_URL' && key !== 'YOUR_SUPABASE_ANON_KEY');
-  };
 
-  // Filter profiles by current city
-  const cityProfiles = profiles.filter(profile => 
-    profile.location.startsWith(currentCity + ',') || 
-    profile.location === currentCity ||
-    profile.location.includes(currentCity)
-  );
+
+  // Filter profiles by current city - more robust matching
+  const cityProfiles = profiles.filter(profile => {
+    const location = profile.location.toLowerCase();
+    const city = currentCity.toLowerCase();
+    
+    // Check various location formats
+    return location.startsWith(city + ',') || 
+           location.startsWith(city + ' ') ||
+           location === city ||
+           location.includes(city + ',') ||
+           location.includes(city + ' ');
+  });
   
   // Split city-specific profiles into columns with time-based hierarchy (latest posts first)
   const totalCityProfiles = cityProfiles.length;
@@ -1586,6 +1587,21 @@ export default function App() {
   console.log(`🔍 Center column profiles: ${centerColumnProfiles.length}`);
   console.log(`🔍 Left column profiles: ${leftColumnProfiles.length}`);
   console.log(`🔍 Right column profiles: ${rightColumnProfiles.length}`);
+  
+  // Debug: Show location matching details
+  if (profiles.length > 0) {
+    console.log(`🔍 Location matching debug:`);
+    profiles.slice(0, 5).forEach((profile, index) => {
+      const location = profile.location.toLowerCase();
+      const city = currentCity.toLowerCase();
+      const matches = location.startsWith(city + ',') || 
+                     location.startsWith(city + ' ') ||
+                     location === city ||
+                     location.includes(city + ',') ||
+                     location.includes(city + ' ');
+      console.log(`  Profile ${index + 1}: "${profile.location}" -> matches "${currentCity}": ${matches}`);
+    });
+  }
 
   return (
     <div className="bg-[#F5F5F0] min-h-screen w-full">
@@ -1719,30 +1735,7 @@ export default function App() {
           
 
           
-          {/* Data Persistence Status */}
-          <div className="text-xs text-gray-500 mt-6 text-center">
-            <div className="mb-2">
-              <span className="font-semibold">Data Persistence Status:</span>
-            </div>
-            <div className="space-y-1">
-              <div>
-                Current City: {currentCity} | 
-                City Posts: {cityProfiles.length} | 
-                Total Posts: {profiles.length} | 
-                Total Comments: {profiles.reduce((total, profile) => total + profile.comments.length, 0)}
-              </div>
-              <div>
-                Database: {isSupabaseConfigured() ? '✅ Connected' : '❌ Not Configured'} | 
-                LocalStorage: {localStorage.getItem('newspaperDatingProfiles') ? '✅ Active' : '❌ Empty'} | 
-                Version: {localStorage.getItem('newspaperDatingVersion') || 'None'}
-              </div>
-              {!isSupabaseConfigured() && (
-                <div className="text-orange-600">
-                  ⚠️ Using localStorage only. Configure Supabase for permanent data storage.
-                </div>
-              )}
-            </div>
-          </div>
+
           
         </div>
       </div>
