@@ -1468,25 +1468,28 @@ export default function App() {
           setError(`Database connection issue: ${dbHealth.error}. Posts may not persist.`);
         }
         
-        // First try to load from localStorage for faster loading
+        // Try to load from database first (prioritize fresh data)
+        try {
+          console.log('🔄 Loading profiles from database...');
+          const dbProfiles = await HybridPostsService.getAllPosts();
+          if (dbProfiles.length > 0) {
+            console.log(`✅ Loaded ${dbProfiles.length} profiles from database`);
+            setProfiles(dbProfiles);
+            // Update localStorage with latest data
+            localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
+            setIsLoading(false);
+            return;
+          }
+        } catch (dbErr) {
+          console.log('⚠️ Database loading failed, falling back to localStorage:', dbErr);
+        }
+        
+        // Fallback to localStorage if database fails
         const storedProfiles = loadProfilesFromStorage();
         if (storedProfiles && storedProfiles.length > 0) {
-          console.log('📱 Loading profiles from localStorage for fast startup...');
+          console.log('📱 Loading profiles from localStorage fallback...');
           setProfiles(storedProfiles);
-          setIsLoading(false); // Stop loading since we have data
-          
-          // Try to sync with database in background (non-blocking)
-          try {
-            const dbProfiles = await HybridPostsService.getAllPosts();
-            if (dbProfiles.length > 0) {
-              console.log('🔄 Syncing with database in background...');
-              setProfiles(dbProfiles);
-              // Update localStorage with latest data
-              localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
-            }
-          } catch (dbErr) {
-            console.log('⚠️ Database sync failed, using localStorage data:', dbErr);
-          }
+          setIsLoading(false);
           return;
         }
         
