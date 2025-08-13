@@ -2,26 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
 import { Heart, MessageCircle } from 'lucide-react';
-
-interface Comment {
-  id: string;
-  text: string;
-  author: string;
-  createdAt: Date;
-}
-
-interface Profile {
-  id: string;
-  name: string;
-  age: number;
-  title: string;
-  location: string;
-  description: string;
-  image?: string;
-  interests: string[];
-  createdAt: Date;
-  comments: Comment[];
-}
+import { HybridPostsService } from './services/hybridPostsService';
+import { Profile, Comment } from './types';
 
 // City-specific template posts
 const cityTemplates = {
@@ -258,6 +240,84 @@ const cityTemplates = {
         ['Authenticity', 'Simple Pleasures', 'Alamo Heights']
       ]
     }
+  ],
+  'San Jose': [
+    {
+      names: ['Blake', 'Skyler', 'Avery', 'Rowan', 'Sage', 'River', 'Phoenix', 'Ocean'],
+      titles: [
+        'Downtown Tech Professional Seeks Work-Life Balance',
+        'Willow Glen Local Wants to Explore Together',
+        'Santana Row Foodie Looking for Culinary Partner',
+        'Almaden Valley Entrepreneur Seeks Harmony',
+        'Campbell Local Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Downtown San Jose tech professional who's learned that success isn't everything. Seeking someone to help maintain work-life balance and enjoy the Bay Area.",
+        "Willow Glen resident who loves exploring San Jose's hidden gems. Looking for someone to share weekend adventures and discover new experiences with.",
+        "Santana Row foodie passionate about San Jose's diverse culinary scene. Want to find someone to explore new restaurants and food trucks with.",
+        "Almaden Valley entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "Campbell local who values authenticity over appearances. Seeking someone real to share the simple pleasures of San Jose life with."
+      ],
+      interests: [
+        ['Technology', 'Work-Life Balance', 'Downtown'],
+        ['Adventure', 'Exploration', 'Willow Glen'],
+        ['Food', 'Culinary Arts', 'Santana Row'],
+        ['Entrepreneurship', 'Work-Life Balance', 'Almaden Valley'],
+        ['Authenticity', 'Simple Pleasures', 'Campbell']
+      ]
+    }
+  ],
+  'Dallas': [
+    {
+      names: ['Jordan', 'Casey', 'Morgan', 'Riley', 'Quinn', 'Alex', 'Sam', 'Taylor'],
+      titles: [
+        'Deep Ellum Artist Seeks Creative Inspiration',
+        'Uptown Professional Wants Weekend Adventures',
+        'Bishop Arts Foodie Looking for Dining Partner',
+        'Oak Lawn Entrepreneur Seeks Work-Life Harmony',
+        'Highland Park Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Deep Ellum artist who finds inspiration in Dallas's vibrant culture. Looking for someone to explore art galleries and share creative moments with.",
+        "Uptown professional who loves discovering Dallas's hidden gems. Seeking someone to share weekend adventures and explore the city together.",
+        "Bishop Arts resident passionate about Dallas's incredible food scene. Want to find someone to explore new restaurants and food trucks with.",
+        "Oak Lawn entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "Highland Park professional who values authenticity over appearances. Seeking someone real to share the simple pleasures of Dallas life with."
+      ],
+      interests: [
+        ['Art', 'Creativity', 'Deep Ellum'],
+        ['Adventure', 'Exploration', 'Uptown'],
+        ['Food', 'Restaurants', 'Bishop Arts'],
+        ['Entrepreneurship', 'Work-Life Balance', 'Oak Lawn'],
+        ['Authenticity', 'Simple Pleasures', 'Highland Park']
+      ]
+    }
+  ],
+  'Seattle': [
+    {
+      names: ['Blake', 'Skyler', 'Avery', 'Rowan', 'Sage', 'River', 'Phoenix', 'Ocean'],
+      titles: [
+        'Capitol Hill Creative Seeks Inspiration',
+        'Fremont Local Wants to Explore Together',
+        'Ballard Foodie Looking for Culinary Partner',
+        'Queen Anne Entrepreneur Seeks Harmony',
+        'Green Lake Professional Wants Authentic Connection'
+      ],
+      descriptions: [
+        "Capitol Hill creative who finds inspiration in Seattle's unique culture. Looking for someone to explore art galleries and share creative moments with.",
+        "Fremont resident who loves discovering Seattle's hidden gems. Seeking someone to share weekend adventures and explore the city together.",
+        "Ballard foodie passionate about Seattle's incredible food scene. Want to find someone to explore new restaurants and food trucks with.",
+        "Queen Anne entrepreneur who believes success means nothing without someone to share it with. Looking for work-life harmony and meaningful relationships.",
+        "Green Lake professional who values authenticity over appearances. Seeking someone real to share the simple pleasures of Seattle life with."
+      ],
+      interests: [
+        ['Art', 'Creativity', 'Capitol Hill'],
+        ['Adventure', 'Exploration', 'Fremont'],
+        ['Food', 'Restaurants', 'Ballard'],
+        ['Entrepreneurship', 'Work-Life Balance', 'Queen Anne'],
+        ['Authenticity', 'Simple Pleasures', 'Green Lake']
+      ]
+    }
   ]
 };
 
@@ -374,6 +434,7 @@ function generateCityPosts(city: string, count: number): Profile[] {
 }
 
 // Get state abbreviation for cities
+// Get state abbreviation for cities
 function getStateFromCity(city: string): string {
   const stateMap: { [key: string]: string } = {
     'New York': 'NY',
@@ -398,6 +459,42 @@ function getStateFromCity(city: string): string {
     'Washington': 'DC'
   };
   return stateMap[city] || 'CA';
+}
+
+// Get the correct image path for a city, with fallback support
+function getCityImagePath(city: string): string {
+  // Map of cities to their available image formats
+  const cityImageMap: { [key: string]: string[] } = {
+    'New York': ['New York.jpg'],
+    'Los Angeles': ['Los Angeles.jpg'],
+    'San Francisco': ['San Francisco.jpg'],
+    'Chicago': ['Chicago.jpg'],
+    'Austin': ['Austin.jpg'],
+    'Houston': ['Houston.jpg'],
+    'Phoenix': ['Phoenix.jpg', 'Phoenix.webp'],
+    'Philadelphia': ['Philadelphia.jpg'],
+    'San Antonio': ['San Antonio.jpg'],
+    'San Diego': ['San Diego.jpg'],
+    'Dallas': ['Dallas.jpg'],
+    'San Jose': ['San Jose.jpg'],
+    'Jacksonville': ['Jacksonville.jpg'],
+    'Fort Worth': ['Fort Worth.jpg'],
+    'Columbus': ['Columbus.jpeg'],
+    'Charlotte': ['Charlotte.jpg'],
+    'Indianapolis': ['Indianapolis.jpg'],
+    'Seattle': ['Seattle.jpeg'],
+    'Denver': ['Denver.jpg'],
+    'Washington': ['Washington.jpg']
+  };
+
+  const availableImages = cityImageMap[city];
+  if (availableImages && availableImages.length > 0) {
+    // Return the first available image (primary format)
+    return `/${availableImages[0]}`;
+  }
+  
+  // Fallback to San Francisco if no city-specific image is found
+  return '/San Francisco.jpg';
 }
 
 function formatTimestamp(date: Date): string {
@@ -612,6 +709,13 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost,
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
+  
+  // Debug: Log the image path being used
+  console.log(`🖼️ ProfileCardWithImage rendering for city: ${currentCity}`);
+  console.log(`🖼️ Image path: ${getCityImagePath(currentCity)}`);
+  console.log(`🖼️ Profile location: ${profile.location}`);
+  
+
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -635,16 +739,53 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost,
               style={{ backgroundImage: `url('${profile.image}')` }}
             />
           ) : (
-            <div className="absolute flex items-center justify-center h-[284px] left-0 top-0 w-full bg-gray-100">
+                        <div className="absolute flex items-center justify-center h-[284px] left-0 top-0 w-full bg-gray-100">
+              
               <img 
-                src={`/${currentCity}.jpg`}
+                id={`city-image-${currentCity}`}
+                src={getCityImagePath(currentCity)}
                 alt={`${currentCity} Profile`} 
                 className="w-full h-full object-cover filter grayscale contrast-125 brightness-90 sepia-20 hue-rotate-15 saturate-150"
+                style={{ border: '2px solid red' }} // Debug border
                 onError={(e) => {
-                  // Fallback to generic image if city-specific image doesn't exist
-                  e.currentTarget.src = '/900x0.jpg';
+                  console.error(`❌ Image failed to load: ${e.currentTarget.src}`);
+                  // Try with different encoding first
+                  const encodedCity = encodeURIComponent(currentCity);
+                  if (e.currentTarget.src !== `/${encodedCity}.jpg`) {
+                    e.currentTarget.src = `/${encodedCity}.jpg`;
+                    return;
+                  }
+                  
+                  // Try alternative formats for the city
+                  const cityImageMap: { [key: string]: string[] } = {
+                    'Phoenix': ['Phoenix.jpg', 'Phoenix.webp'],
+                    'Columbus': ['Columbus.jpeg'],
+                    'Seattle': ['Seattle.jpeg'],
+                    // Add other cities with multiple formats as needed
+                  };
+                  
+                  const alternatives = cityImageMap[currentCity];
+                  if (alternatives && alternatives.length > 1) {
+                    const currentSrc = e.currentTarget.src;
+                    const currentFormat = currentSrc.split('.').pop();
+                    const nextFormat = alternatives.find(format => !format.includes(currentFormat || ''));
+                    if (nextFormat) {
+                      e.currentTarget.src = `/${nextFormat}`;
+                      return;
+                    }
+                  }
+                  
+                  // Final fallback to San Francisco image
+                  e.currentTarget.src = '/San Francisco.jpg';
+                }}
+                onLoad={() => {
+                  // Image loaded successfully
+                }}
+                onLoadStart={() => {
+                  // Image load started
                 }}
               />
+
             </div>
           )}
         </div>
@@ -845,6 +986,8 @@ function NewspaperDivider() {
   );
 }
 
+
+
 function DateIdeas({ city }: { city: string }) {
   // Date ideas for different cities
   const cityDateIdeas: { [key: string]: string[] } = {
@@ -996,7 +1139,7 @@ function DateIdeas({ city }: { city: string }) {
   );
 }
 
-function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityChange: (city: string) => void; usCities: string[]; onAddPostClick: () => void }) {
+function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }: { onCityChange: (city: string) => void; usCities: string[]; onAddPostClick: () => void; currentCity: string }) {
   const today = new Date();
   const dateString = today.toLocaleDateString('en-US', { 
     weekday: 'long', 
@@ -1005,10 +1148,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityCha
     day: 'numeric' 
   });
 
-  const [selectedCity, setSelectedCity] = useState('San Francisco');
-  
   const handleCityChange = (city: string) => {
-    setSelectedCity(city);
     onCityChange(city);
   };
 
@@ -1016,7 +1156,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityCha
     <div className="box-border content-stretch flex flex-col gap-[18px] items-center justify-start p-0 relative shrink-0 w-full">
       <div className="relative w-full px-4">
         <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px]">
-          <p className="block leading-[normal]">what are you looking for?</p>
+        <p className="block leading-[normal]">what are you looking for?</p>
         </div>
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0 hidden lg:block">
           <Button
@@ -1040,7 +1180,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityCha
           <div className="flex flex-col justify-end relative shrink-0">
             <div className="flex items-center gap-1">
               <span className="text-nowrap whitespace-pre">
-                {selectedCity}, {dateString}
+                {currentCity}, {dateString}
               </span>
               <div className="relative ml-1">
                 <select
@@ -1050,7 +1190,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick }: { onCityCha
                   <option value="" disabled selected className="font-nyt text-transparent bg-transparent">
                     
                   </option>
-                  {usCities.filter(city => city !== selectedCity).map((city) => (
+                  {usCities.filter(city => city !== currentCity).map((city) => (
                     <option key={city} value={city} className="font-nyt text-black bg-white">
                       {city}
                     </option>
@@ -1160,34 +1300,34 @@ function AddPostForm({ onAddPost, isOpen, setIsOpen }: { onAddPost: (profile: Om
             
             <div>
                           <label className="block font-nyt text-sm font-medium mb-1">Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               className="w-full p-2 border border-black font-nyt text-sm"
-              required
-            />
+                required
+              />
             </div>
             
             <div>
                           <label className="block font-nyt text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               className="w-full p-2 border border-black font-nyt text-sm h-24"
-              required
-            />
+                required
+              />
             </div>
             
             <div>
                           <label className="block font-nyt text-sm font-medium mb-1">Interests (comma-separated)</label>
-            <input
-              type="text"
-              value={formData.interests}
-              onChange={(e) => setFormData(prev => ({ ...prev, interests: e.target.value }))}
+              <input
+                type="text"
+                value={formData.interests}
+                onChange={(e) => setFormData(prev => ({ ...prev, interests: e.target.value }))}
               className="w-full p-2 border border-black font-nyt text-sm"
-              placeholder="e.g., Cooking, Science, Travel"
-            />
+                placeholder="e.g., Cooking, Science, Travel"
+              />
             </div>
             
             <div className="flex justify-end pt-4">
@@ -1244,20 +1384,20 @@ export default function App() {
     'Washington'
   ], []);
   
-  // Generate exactly 20 posts for each city - memoized to prevent regeneration
+  // Generate exactly 5 posts for each city - memoized to prevent regeneration
   const generateAllPosts = useCallback(() => {
     const allPosts: Profile[] = [];
     
-    // Generate exactly 20 posts for each city with templates
+    // Generate exactly 5 posts for each city with templates
     Object.keys(cityTemplates).forEach(city => {
-      const cityPosts = generateCityPosts(city, 20);
+      const cityPosts = generateCityPosts(city, 5);
       allPosts.push(...cityPosts);
     });
     
-    // Generate exactly 20 posts for remaining cities in the top 20 list
+    // Generate exactly 5 posts for remaining cities in the top 20 list
     const remainingCities = usCities.filter(city => !cityTemplates[city as keyof typeof cityTemplates]);
     remainingCities.forEach((city: string) => {
-      const cityPosts = generateCityPosts(city, 20);
+      const cityPosts = generateCityPosts(city, 5);
       allPosts.push(...cityPosts);
     });
     
@@ -1265,15 +1405,7 @@ export default function App() {
     return allPosts.sort(() => Math.random() - 0.5);
   }, [usCities]);
 
-  // Helper functions for localStorage
-  const saveProfilesToStorage = (profilesToSave: Profile[]) => {
-    try {
-      localStorage.setItem('newspaperDatingProfiles', JSON.stringify(profilesToSave));
-    } catch (error) {
-      console.error('Failed to save profiles to localStorage:', error);
-    }
-  };
-
+  // Helper function for loading profiles from localStorage (fallback)
   const loadProfilesFromStorage = (): Profile[] | null => {
     try {
       const stored = localStorage.getItem('newspaperDatingProfiles');
@@ -1303,67 +1435,134 @@ export default function App() {
     return null;
   };
 
-  const [profiles, setProfiles] = useState<Profile[]>(() => {
-    const storedProfiles = loadProfilesFromStorage();
-    return storedProfiles || generateAllPosts();
-  });
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [error, setError] = useState<string | null>(null);
   
-  const [postsInitialized, setPostsInitialized] = useState(false);
-  
-  // Save profiles to localStorage whenever they change
+  // Load profiles from database/localStorage on component mount
   useEffect(() => {
-    saveProfilesToStorage(profiles);
-  }, [profiles]);
-  
-  // Initialize posts only once, then preserve them
-  useEffect(() => {
-    if (!postsInitialized) {
-      const storedProfiles = loadProfilesFromStorage();
-      if (storedProfiles) {
-        setProfiles(storedProfiles);
-      } else {
-        setProfiles(generateAllPosts());
+    const loadProfiles = async () => {
+      try {
+        setError(null);
+        
+        // Force regenerate all profiles to ensure new city templates are included
+        console.log('🔄 Force regenerating all profiles with new city templates...');
+        const initialProfiles = generateAllPosts();
+        console.log(`🔄 Generated ${initialProfiles.length} profiles`);
+        const cities = initialProfiles.map((p: Profile) => p.location.split(',')[0]);
+        const uniqueCities = cities.filter((city: string, index: number) => cities.indexOf(city) === index);
+        console.log(`🔄 Cities with profiles:`, uniqueCities);
+        
+        // Try to seed database first
+        try {
+          await HybridPostsService.seedInitialData(initialProfiles);
+          console.log('✅ Profiles seeded to database');
+        } catch (dbErr) {
+          console.log('⚠️ Database seeding failed, using localStorage:', dbErr);
+        }
+        
+        // Always use the newly generated profiles
+        setProfiles(initialProfiles);
+        
+        // Also save to localStorage as backup
+        localStorage.setItem('newspaperDatingProfiles', JSON.stringify(initialProfiles));
+        localStorage.setItem('newspaperDatingVersion', '2.2'); // New version for 5 posts per city
+        
+      } catch (err) {
+        console.error('Error loading profiles:', err);
+        setError('Failed to load posts. Using local data as fallback.');
+        
+        // Fallback to localStorage
+        const storedProfiles = loadProfilesFromStorage();
+        if (storedProfiles) {
+          setProfiles(storedProfiles);
+        } else {
+          const initialProfiles = generateAllPosts();
+          setProfiles(initialProfiles);
+        }
       }
-      setPostsInitialized(true);
-    }
-  }, [postsInitialized, generateAllPosts]);
-
-  const addNewPost = (newProfile: Omit<Profile, 'id' | 'createdAt'>) => {
-    const newId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const newPost: Profile = {
-      ...newProfile,
-      id: newId,
-      createdAt: new Date()
-    };
-    setProfiles(prev => [...prev, newPost]); // Add new post at the end to distribute across columns
-  };
-
-  const addComment = (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => {
-    const newComment: Comment = {
-      ...comment,
-      id: Date.now().toString(),
-      createdAt: new Date()
     };
     
-    setProfiles(prev => prev.map(profile => 
-      profile.id === profileId 
-        ? { ...profile, comments: [...profile.comments, newComment] }
-        : profile
-    ));
+    loadProfiles();
+  }, []);
+
+
+
+  const addNewPost = async (newProfile: Omit<Profile, 'id' | 'createdAt'>) => {
+    try {
+      const newPost = await HybridPostsService.createPost(newProfile);
+      setProfiles(prev => [...prev, newPost]);
+    } catch (err) {
+      console.error('Error creating post:', err);
+      setError('Failed to create post. Please try again.');
+      
+      // Fallback to local creation
+      const newId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newPost: Profile = {
+        ...newProfile,
+        id: newId,
+        createdAt: new Date()
+      };
+      setProfiles(prev => [...prev, newPost]);
+    }
   };
 
-  const deletePost = (profileId: string) => {
-    setProfiles(prev => prev.filter(profile => profile.id !== profileId));
+  const addComment = async (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => {
+    try {
+      const newComment = await HybridPostsService.addComment(profileId, comment);
+      
+      setProfiles(prev => prev.map(profile => 
+        profile.id === profileId 
+          ? { ...profile, comments: [...profile.comments, newComment] }
+          : profile
+      ));
+    } catch (err) {
+      console.error('Error adding comment:', err);
+      setError('Failed to add comment. Please try again.');
+      
+      // Fallback to local comment
+      const newComment: Comment = {
+        ...comment,
+        id: Date.now().toString(),
+        createdAt: new Date()
+      };
+      
+      setProfiles(prev => prev.map(profile => 
+        profile.id === profileId 
+          ? { ...profile, comments: [...profile.comments, newComment] }
+          : profile
+      ));
+    }
+  };
+
+  const deletePost = async (profileId: string) => {
+    try {
+      await HybridPostsService.deletePost(profileId);
+      setProfiles(prev => prev.filter(profile => profile.id !== profileId));
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      setError('Failed to delete post. Please try again.');
+      
+      // Fallback to local deletion
+      setProfiles(prev => prev.filter(profile => profile.id !== profileId));
+    }
   };
 
   const isUserPost = (profileId: string) => {
     return profileId.startsWith('user-');
   };
 
+  // Check if Supabase is configured
+  const isSupabaseConfigured = (): boolean => {
+    const url = process.env.REACT_APP_SUPABASE_URL;
+    const key = process.env.REACT_APP_SUPABASE_ANON_KEY;
+    return Boolean(url && key && url !== 'YOUR_SUPABASE_URL' && key !== 'YOUR_SUPABASE_ANON_KEY');
+  };
+
   // Filter profiles by current city
   const cityProfiles = profiles.filter(profile => 
     profile.location.startsWith(currentCity + ',') || 
-    profile.location === currentCity
+    profile.location === currentCity ||
+    profile.location.includes(currentCity)
   );
   
   // Split city-specific profiles into columns with time-based hierarchy (latest posts first)
@@ -1377,6 +1576,16 @@ export default function App() {
   const leftColumnProfiles = sortedCityProfiles.slice(0, leftColumnCount);
   const centerColumnProfiles = sortedCityProfiles.slice(leftColumnCount, leftColumnCount + centerColumnCount);
   const rightColumnProfiles = sortedCityProfiles.slice(leftColumnCount + centerColumnCount);
+  
+  // Debug: Log city filtering
+  console.log(`🔍 Current city: "${currentCity}"`);
+  console.log(`🔍 Total profiles: ${profiles.length}`);
+  console.log(`🔍 City profiles: ${cityProfiles.length}`);
+  console.log(`🔍 Sample profile locations:`, profiles.slice(0, 3).map(p => p.location));
+  console.log(`🔍 City profile locations:`, cityProfiles.slice(0, 3).map(p => p.location));
+  console.log(`🔍 Center column profiles: ${centerColumnProfiles.length}`);
+  console.log(`🔍 Left column profiles: ${leftColumnProfiles.length}`);
+  console.log(`🔍 Right column profiles: ${rightColumnProfiles.length}`);
 
   return (
     <div className="bg-[#F5F5F0] min-h-screen w-full">
@@ -1388,9 +1597,27 @@ export default function App() {
             }} 
             usCities={usCities}
             onAddPostClick={() => setIsAddPostOpen(true)}
+            currentCity={currentCity}
           />
           
           <AddPostForm onAddPost={addNewPost} isOpen={isAddPostOpen} setIsOpen={setIsAddPostOpen} />
+          
+
+          
+
+          
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 w-full">
+              <p className="font-nyt text-red-800 text-sm">{error}</p>
+              <button 
+                onClick={() => setError(null)}
+                className="font-nyt text-red-600 text-xs underline mt-1"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           
           {/* Mobile Layout - Single Column Sequence */}
           <div className="flex flex-col gap-6 w-full lg:hidden">
@@ -1408,7 +1635,7 @@ export default function App() {
             {/* Featured Image Post (First post with image) */}
             {centerColumnProfiles.length > 0 && (
               <ProfileCardWithImage 
-                key={centerColumnProfiles[0].id} 
+                key={`${centerColumnProfiles[0].id}-${currentCity}`} 
                 profile={centerColumnProfiles[0]} 
                 onAddComment={addComment}
                 onDeletePost={deletePost}
@@ -1451,10 +1678,10 @@ export default function App() {
             
             {/* Center Column */}
             <div className="flex flex-col gap-[30px] items-start justify-start w-full lg:w-[436px]">
-              {centerColumnProfiles.map((profile, index) => 
-                index === 0 ? (
+              {centerColumnProfiles.map((profile, index) => {
+                return index === 0 ? (
                   <ProfileCardWithImage 
-                    key={profile.id} 
+                    key={`${profile.id}-${currentCity}`} 
                     profile={profile} 
                     onAddComment={addComment}
                     onDeletePost={deletePost}
@@ -1469,8 +1696,8 @@ export default function App() {
                     onDeletePost={deletePost}
                     isUserPost={isUserPost(profile.id)}
                   />
-                )
-              )}
+                );
+              })}
             </div>
             
             <VerticalDivider />
@@ -1492,14 +1719,29 @@ export default function App() {
           
 
           
-          {/* Debug info - can be removed later */}
+          {/* Data Persistence Status */}
           <div className="text-xs text-gray-500 mt-6 text-center">
-            Current City: {currentCity} | 
-            City Posts: {cityProfiles.length} | 
-            Total Posts: {profiles.length} | 
-            Total Comments: {profiles.reduce((total, profile) => total + profile.comments.length, 0)} | 
-            Stored in localStorage: {localStorage.getItem('newspaperDatingProfiles') ? 'Yes' : 'No'} | 
-            Version: {localStorage.getItem('newspaperDatingVersion') || 'None'}
+            <div className="mb-2">
+              <span className="font-semibold">Data Persistence Status:</span>
+            </div>
+            <div className="space-y-1">
+              <div>
+                Current City: {currentCity} | 
+                City Posts: {cityProfiles.length} | 
+                Total Posts: {profiles.length} | 
+                Total Comments: {profiles.reduce((total, profile) => total + profile.comments.length, 0)}
+              </div>
+              <div>
+                Database: {isSupabaseConfigured() ? '✅ Connected' : '❌ Not Configured'} | 
+                LocalStorage: {localStorage.getItem('newspaperDatingProfiles') ? '✅ Active' : '❌ Empty'} | 
+                Version: {localStorage.getItem('newspaperDatingVersion') || 'None'}
+              </div>
+              {!isSupabaseConfigured() && (
+                <div className="text-orange-600">
+                  ⚠️ Using localStorage only. Configure Supabase for permanent data storage.
+                </div>
+              )}
+            </div>
           </div>
           
         </div>
