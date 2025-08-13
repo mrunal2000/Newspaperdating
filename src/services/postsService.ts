@@ -167,6 +167,8 @@ export class PostsService {
       const postData = convertProfileToDatabasePost(profile);
       console.log('🔄 Attempting to create post in Supabase:', postData);
       
+      console.log('🔄 Inserting post data:', JSON.stringify(postData, null, 2));
+      
       const { data: newPost, error } = await supabase
         .from('posts')
         .insert([postData])

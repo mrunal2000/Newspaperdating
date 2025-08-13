@@ -51,8 +51,8 @@ export const convertProfileToDatabasePost = (profile: any) => ({
   title: profile.title,
   location: profile.location,
   description: profile.description,
-  image: profile.image,
-  interests: profile.interests
+  image: profile.image || null,
+  interests: profile.interests || []
 });
 
 // Check if we should use Supabase or fallback to localStorage
