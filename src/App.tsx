@@ -1211,12 +1211,12 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }
   );
 }
 
-function AddPostForm({ onAddPost, isOpen, setIsOpen }: { onAddPost: (profile: Omit<Profile, 'id' | 'createdAt'>) => void; isOpen: boolean; setIsOpen: (open: boolean) => void }) {
+function AddPostForm({ onAddPost, isOpen, setIsOpen, currentCity }: { onAddPost: (profile: Omit<Profile, 'id' | 'createdAt'>) => void; isOpen: boolean; setIsOpen: (open: boolean) => void; currentCity: string }) {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
     title: '',
-    location: 'San Francisco, CA',
+    location: `${currentCity}, CA`,
     description: '',
     interests: ''
   });
@@ -1238,7 +1238,7 @@ function AddPostForm({ onAddPost, isOpen, setIsOpen }: { onAddPost: (profile: Om
         name: '',
         age: '',
         title: '',
-        location: 'San Francisco, CA',
+        location: `${currentCity}, CA`,
         description: '',
         interests: ''
       });
@@ -1600,7 +1600,7 @@ export default function App() {
             currentCity={currentCity}
           />
           
-          <AddPostForm onAddPost={addNewPost} isOpen={isAddPostOpen} setIsOpen={setIsAddPostOpen} />
+          <AddPostForm onAddPost={addNewPost} isOpen={isAddPostOpen} setIsOpen={setIsAddPostOpen} currentCity={currentCity} />
           
 
           
