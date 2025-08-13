@@ -78,8 +78,6 @@ export class HybridPostsService {
     try {
       if (shouldUseSupabase()) {
         const newPost = await PostsService.createPost(profile);
-        // Also save to localStorage as backup
-        this.savePostToLocalStorage(newPost);
         return newPost;
       } else {
         // If Supabase is not configured, throw error instead of falling back to localStorage
@@ -96,8 +94,6 @@ export class HybridPostsService {
     try {
       if (shouldUseSupabase()) {
         const newComment = await PostsService.addComment(postId, comment);
-        // Also save to localStorage as backup
-        this.addCommentToLocalStorage(postId, newComment);
         return newComment;
       } else {
         // If Supabase is not configured, throw error instead of falling back to localStorage
@@ -188,48 +184,9 @@ export class HybridPostsService {
     }
   }
 
-  private static savePostToLocalStorage(post: Profile): void {
-    try {
-      const profiles = this.getPostsFromLocalStorage();
-      const existingIndex = profiles.findIndex(p => p.id === post.id);
-      if (existingIndex >= 0) {
-        profiles[existingIndex] = post;
-      } else {
-        profiles.push(post);
-      }
-      this.saveProfilesToLocalStorage(profiles);
-    } catch (error) {
-      console.error('Error saving post to localStorage:', error);
-    }
-  }
 
-  private static createPostInLocalStorage(profile: Omit<Profile, 'id' | 'createdAt'>): Profile {
-    const newPost: Profile = {
-      ...profile,
-      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date()
-    };
-    
-    this.savePostToLocalStorage(newPost);
-    return newPost;
-  }
 
-  private static addCommentToLocalStorage(postId: string, comment: Omit<Comment, 'id' | 'createdAt'>): Comment {
-    const newComment: Comment = {
-      ...comment,
-      id: Date.now().toString(),
-      createdAt: new Date()
-    };
-    
-    const profiles = this.getPostsFromLocalStorage();
-    const profileIndex = profiles.findIndex(p => p.id === postId);
-    if (profileIndex >= 0) {
-      profiles[profileIndex].comments.push(newComment);
-      this.saveProfilesToLocalStorage(profiles);
-    }
-    
-    return newComment;
-  }
+
 
   private static deletePostFromLocalStorage(postId: string): void {
     try {
