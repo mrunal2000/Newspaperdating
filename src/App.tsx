@@ -1365,7 +1365,11 @@ function VerticalDivider() {
 }
 
 export default function App() {
-  const [currentCity, setCurrentCity] = useState('New York');
+  // Load saved city from localStorage or default to New York
+  const [currentCity, setCurrentCity] = useState(() => {
+    const savedCity = localStorage.getItem('newspaperDatingCurrentCity');
+    return savedCity || 'New York';
+  });
   const [isAddPostOpen, setIsAddPostOpen] = useState(false);
   
   // Top 20 US cities - memoized to prevent recreation on every render
@@ -1452,13 +1456,31 @@ export default function App() {
       try {
         setError(null);
         
-        // Force regenerate all profiles to ensure new city templates are included
-        console.log('🔄 Force regenerating all profiles with new city templates...');
+        // First try to load from localStorage for faster loading
+        const storedProfiles = loadProfilesFromStorage();
+        if (storedProfiles && storedProfiles.length > 0) {
+          console.log('📱 Loading profiles from localStorage for fast startup...');
+          setProfiles(storedProfiles);
+          
+          // Try to sync with database in background (non-blocking)
+          try {
+            const dbProfiles = await HybridPostsService.getAllPosts();
+            if (dbProfiles.length > 0) {
+              console.log('🔄 Syncing with database in background...');
+              setProfiles(dbProfiles);
+              // Update localStorage with latest data
+              localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
+            }
+          } catch (dbErr) {
+            console.log('⚠️ Database sync failed, using localStorage data:', dbErr);
+          }
+          return;
+        }
+        
+        // Only generate new profiles if none exist
+        console.log('🔄 No existing profiles found, generating new ones...');
         const initialProfiles = generateAllPosts();
         console.log(`🔄 Generated ${initialProfiles.length} profiles`);
-        const cities = initialProfiles.map((p: Profile) => p.location.split(',')[0]);
-        const uniqueCities = cities.filter((city: string, index: number) => cities.indexOf(city) === index);
-        console.log(`🔄 Cities with profiles:`, uniqueCities);
         
         // Try to seed database first
         try {
@@ -1468,25 +1490,18 @@ export default function App() {
           console.log('⚠️ Database seeding failed, using localStorage:', dbErr);
         }
         
-        // Always use the newly generated profiles
+        // Set profiles and save to localStorage
         setProfiles(initialProfiles);
-        
-        // Also save to localStorage as backup
         localStorage.setItem('newspaperDatingProfiles', JSON.stringify(initialProfiles));
-        localStorage.setItem('newspaperDatingVersion', '2.2'); // New version for 5 posts per city
+        localStorage.setItem('newspaperDatingVersion', '2.3'); // New version
         
       } catch (err) {
         console.error('Error loading profiles:', err);
         setError('Failed to load posts. Using local data as fallback.');
         
-        // Fallback to localStorage
-        const storedProfiles = loadProfilesFromStorage();
-        if (storedProfiles) {
-          setProfiles(storedProfiles);
-        } else {
-          const initialProfiles = generateAllPosts();
-          setProfiles(initialProfiles);
-        }
+        // Final fallback
+        const fallbackProfiles = generateAllPosts();
+        setProfiles(fallbackProfiles);
       }
     };
     
@@ -1618,6 +1633,8 @@ export default function App() {
           <NewspaperHeader 
             onCityChange={(city) => {
               setCurrentCity(city);
+              // Save current city to localStorage for persistence
+              localStorage.setItem('newspaperDatingCurrentCity', city);
             }} 
             usCities={usCities}
             onAddPostClick={() => setIsAddPostOpen(true)}
