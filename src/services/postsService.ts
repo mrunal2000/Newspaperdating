@@ -40,6 +40,8 @@ export class PostsService {
   // Get all posts with their comments
   static async getAllPosts(): Promise<Profile[]> {
     try {
+      console.log('🔄 Fetching all posts from Supabase...');
+      
       // Get all posts
       const { data: posts, error: postsError } = await supabase
         .from('posts')
@@ -47,6 +49,9 @@ export class PostsService {
         .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
+
+      console.log('📊 Raw posts from Supabase:', posts);
+      console.log('📊 Number of posts found:', posts?.length || 0);
 
       if (!posts) return [];
 
@@ -58,6 +63,9 @@ export class PostsService {
 
       if (commentsError) throw commentsError;
 
+      console.log('📊 Raw comments from Supabase:', comments);
+      console.log('📊 Number of comments found:', comments?.length || 0);
+
       // Group comments by post_id
       const commentsByPostId = (comments || []).reduce((acc, comment) => {
         if (!acc[comment.post_id]) {
@@ -67,12 +75,19 @@ export class PostsService {
         return acc;
       }, {} as Record<string, DatabaseComment[]>);
 
+      console.log('📊 Grouped comments by post:', commentsByPostId);
+
       // Convert database posts to app profiles
-      return posts.map(post => 
+      const convertedPosts = posts.map(post => 
         convertDatabasePostToProfile(post, commentsByPostId[post.id] || [])
       );
+      
+      console.log('🔄 Converted posts to Profiles:', convertedPosts);
+      console.log('🔄 Final number of profiles:', convertedPosts.length);
+      
+      return convertedPosts;
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('❌ Error fetching posts:', error);
       throw error;
     }
   }
@@ -166,7 +181,10 @@ export class PostsService {
       console.log('✅ Post created successfully in Supabase:', newPost);
       
       // Convert back to Profile type
-      return convertDatabasePostToProfile(newPost, []);
+      const convertedPost = convertDatabasePostToProfile(newPost, []);
+      console.log('🔄 Converted post back to Profile:', convertedPost);
+      
+      return convertedPost;
     } catch (error) {
       console.error('❌ Error creating post:', error);
       throw error;
