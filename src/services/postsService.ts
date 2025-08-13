@@ -56,6 +56,61 @@ export class PostsService {
     }
   }
 
+  // Get a single post by ID
+  static async getPostById(postId: string): Promise<Profile | null> {
+    try {
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('id', postId)
+        .single();
+
+      if (postError) throw postError;
+
+      if (!post) return null;
+
+      // Get comments for this post
+      const { data: comments, error: commentsError } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+
+      if (commentsError) throw commentsError;
+
+      // Convert database post to app profile
+      return convertDatabasePostToProfile(post, comments || []);
+    } catch (error) {
+      console.error('Error fetching post by ID:', error);
+      return null;
+    }
+  }
+
+  // Get a single comment by ID
+  static async getCommentById(commentId: string): Promise<Comment | null> {
+    try {
+      const { data: comment, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('id', commentId)
+        .single();
+
+      if (error) throw error;
+
+      if (!comment) return null;
+
+      return {
+        id: comment.id,
+        text: comment.text,
+        author: comment.author,
+        createdAt: new Date(comment.created_at)
+      };
+    } catch (error) {
+      console.error('Error fetching comment by ID:', error);
+      return null;
+    }
+  }
+
   // Create a new post
   static async createPost(profile: Omit<Profile, 'id' | 'createdAt'>): Promise<Profile> {
     try {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { shouldUseSupabase } from './services/supabase';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
 import { Heart, MessageCircle } from 'lucide-react';
@@ -1508,6 +1509,112 @@ export default function App() {
     loadProfiles();
   }, []);
 
+  // Add periodic sync for cross-device synchronization
+  useEffect(() => {
+    const syncInterval = setInterval(async () => {
+      try {
+        // Try to sync with database every 30 seconds
+        const dbProfiles = await HybridPostsService.getAllPosts();
+        if (dbProfiles.length > 0) {
+          // Check if we have new data from database
+          const currentIds = new Set(profiles.map(p => p.id));
+          const newProfiles = dbProfiles.filter(p => !currentIds.has(p.id));
+          
+          if (newProfiles.length > 0) {
+            console.log(`🔄 Found ${newProfiles.length} new profiles from database, updating...`);
+            setProfiles(dbProfiles);
+            localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
+          }
+        }
+      } catch (err) {
+        console.log('🔄 Periodic sync failed:', err);
+      }
+    }, 30000); // Sync every 30 seconds
+
+    return () => clearInterval(syncInterval);
+  }, [profiles]);
+
+  // Real-time Supabase subscriptions for instant cross-device updates
+  useEffect(() => {
+    if (!shouldUseSupabase()) {
+      console.log('⚠️ Supabase not configured - real-time updates disabled');
+      return;
+    }
+
+    let postsSubscription: any;
+    let commentsSubscription: any;
+
+    const setupRealtimeSubscriptions = async () => {
+      try {
+        const { supabase } = await import('./services/supabase');
+        
+        // Subscribe to new posts
+        postsSubscription = supabase
+          .channel('posts_changes')
+          .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'posts' },
+            async (payload) => {
+              console.log('🔄 Real-time post update:', payload);
+              
+              if (payload.eventType === 'INSERT') {
+                // New post added
+                const newPost = await HybridPostsService.getPostById(payload.new.id);
+                if (newPost) {
+                  setProfiles(prev => [...prev, newPost]);
+                  console.log('✅ New post added via real-time subscription');
+                }
+              } else if (payload.eventType === 'DELETE') {
+                // Post deleted
+                setProfiles(prev => prev.filter(p => p.id !== payload.old.id));
+                console.log('✅ Post deleted via real-time subscription');
+              }
+            }
+          )
+          .subscribe();
+
+        // Subscribe to new comments
+        commentsSubscription = supabase
+          .channel('comments_changes')
+          .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'comments' },
+            async (payload) => {
+              console.log('🔄 Real-time comment update:', payload);
+              
+              if (payload.eventType === 'INSERT') {
+                // New comment added
+                const newComment = await HybridPostsService.getCommentById(payload.new.id);
+                if (newComment) {
+                  setProfiles(prev => prev.map(profile => 
+                    profile.id === payload.new.post_id 
+                      ? { ...profile, comments: [...profile.comments, newComment] }
+                      : profile
+                  ));
+                  console.log('✅ New comment added via real-time subscription');
+                }
+              }
+            }
+          )
+          .subscribe();
+
+        console.log('✅ Real-time subscriptions established');
+      } catch (error) {
+        console.error('❌ Failed to setup real-time subscriptions:', error);
+      }
+    };
+
+    setupRealtimeSubscriptions();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      if (postsSubscription) {
+        postsSubscription.unsubscribe();
+      }
+      if (commentsSubscription) {
+        commentsSubscription.unsubscribe();
+      }
+    };
+  }, []);
+
 
 
   const addNewPost = async (newProfile: Omit<Profile, 'id' | 'createdAt'>) => {
@@ -1659,6 +1766,44 @@ export default function App() {
               </button>
             </div>
           )}
+
+          {/* Cross-Device Sync Status */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 w-full">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-nyt text-blue-800 text-sm font-medium">📱 Cross-Device Sync</p>
+                <p className="font-nyt text-blue-600 text-xs mt-1">
+                  {process.env.REACT_APP_SUPABASE_URL && process.env.REACT_APP_SUPABASE_URL !== 'YOUR_SUPABASE_URL' 
+                    ? '✅ Supabase configured - Real-time sync enabled' 
+                    : '⚠️ Supabase not configured - Data stays local to each device'}
+                </p>
+              </div>
+              <button 
+                onClick={async () => {
+                  try {
+                    const dbProfiles = await HybridPostsService.getAllPosts();
+                    if (dbProfiles.length > 0) {
+                      setProfiles(dbProfiles);
+                      localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
+                      console.log('🔄 Manual sync completed');
+                    }
+                  } catch (err) {
+                    console.log('🔄 Manual sync failed:', err);
+                  }
+                }}
+                className="font-nyt text-blue-600 text-xs underline px-3 py-1 border border-blue-300 rounded hover:bg-blue-100"
+              >
+                🔄 Sync Now
+              </button>
+            </div>
+            {(!process.env.REACT_APP_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL === 'YOUR_SUPABASE_URL') && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                <p className="font-nyt text-yellow-800 text-xs">
+                  <strong>To enable cross-device sync:</strong> Set up Supabase environment variables in your deployment.
+                </p>
+              </div>
+            )}
+          </div>
           
           {/* Mobile Layout - Single Column Sequence */}
           <div className="flex flex-col gap-6 w-full lg:hidden">

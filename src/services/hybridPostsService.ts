@@ -39,7 +39,41 @@ export class HybridPostsService {
     }
   }
 
-  // Create a new post
+  // Get a single post by ID
+  static async getPostById(postId: string): Promise<Profile | null> {
+    try {
+      if (shouldUseSupabase()) {
+        return await PostsService.getPostById(postId);
+      } else {
+        const allPosts = this.getPostsFromLocalStorage();
+        return allPosts.find(post => post.id === postId) || null;
+      }
+    } catch (error) {
+      console.error('Failed to get post by ID:', error);
+      return null;
+    }
+  }
+
+  // Get a single comment by ID
+  static async getCommentById(commentId: string): Promise<Comment | null> {
+    try {
+      if (shouldUseSupabase()) {
+        return await PostsService.getCommentById(commentId);
+      } else {
+        const allPosts = this.getPostsFromLocalStorage();
+        for (const post of allPosts) {
+          const comment = post.comments.find(c => c.id === commentId);
+          if (comment) return comment;
+        }
+        return null;
+      }
+    } catch (error) {
+      console.error('Failed to get comment by ID:', error);
+      return null;
+    }
+  }
+
+  // Create a new post - Force Supabase usage for cross-device sync
   static async createPost(profile: Omit<Profile, 'id' | 'createdAt'>): Promise<Profile> {
     try {
       if (shouldUseSupabase()) {
@@ -48,15 +82,16 @@ export class HybridPostsService {
         this.savePostToLocalStorage(newPost);
         return newPost;
       } else {
-        return this.createPostInLocalStorage(profile);
+        // If Supabase is not configured, throw error instead of falling back to localStorage
+        throw new Error('Supabase is not configured. Please set up environment variables for cross-device sync.');
       }
     } catch (error) {
-      console.warn('Supabase failed, falling back to localStorage:', error);
-      return this.createPostInLocalStorage(profile);
+      console.error('Failed to create post in Supabase:', error);
+      throw error; // Re-throw to let the UI handle the error
     }
   }
 
-  // Add a comment to a post
+  // Add a comment to a post - Force Supabase usage for cross-device sync
   static async addComment(postId: string, comment: Omit<Comment, 'id' | 'createdAt'>): Promise<Comment> {
     try {
       if (shouldUseSupabase()) {
@@ -65,11 +100,12 @@ export class HybridPostsService {
         this.addCommentToLocalStorage(postId, newComment);
         return newComment;
       } else {
-        return this.addCommentToLocalStorage(postId, comment);
+        // If Supabase is not configured, throw error instead of falling back to localStorage
+        throw new Error('Supabase is not configured. Please set up environment variables for cross-device sync.');
       }
     } catch (error) {
-      console.warn('Supabase failed, falling back to localStorage:', error);
-      return this.addCommentToLocalStorage(postId, comment);
+      console.error('Failed to add comment in Supabase:', error);
+      throw error; // Re-throw to let the UI handle the error
     }
   }
 
