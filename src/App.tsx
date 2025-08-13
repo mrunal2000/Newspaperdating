@@ -1365,7 +1365,7 @@ function VerticalDivider() {
 }
 
 export default function App() {
-  const [currentCity, setCurrentCity] = useState('San Francisco');
+  const [currentCity, setCurrentCity] = useState('New York');
   const [isAddPostOpen, setIsAddPostOpen] = useState(false);
   
   // Top 20 US cities - memoized to prevent recreation on every render
