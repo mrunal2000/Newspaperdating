@@ -1,0 +1,7 @@
+# Don't ignore source files
+!src/**/*
+!public/**/*
+!package.json
+!tsconfig.json
+!tailwind.config.js
+!postcss.config.js
