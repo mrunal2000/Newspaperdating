@@ -1513,7 +1513,7 @@ export default function App() {
   useEffect(() => {
     const syncInterval = setInterval(async () => {
       try {
-        // Try to sync with database every 30 seconds
+        // Try to sync with database every 5 minutes
         const dbProfiles = await HybridPostsService.getAllPosts();
         if (dbProfiles.length > 0) {
           // Check if we have new data from database
@@ -1529,7 +1529,7 @@ export default function App() {
       } catch (err) {
         console.log('🔄 Periodic sync failed:', err);
       }
-    }, 30000); // Sync every 30 seconds
+    }, 300000); // Sync every 5 minutes (300,000 ms)
 
     return () => clearInterval(syncInterval);
   }, [profiles]);
@@ -1767,43 +1767,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Cross-Device Sync Status */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 w-full">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-nyt text-blue-800 text-sm font-medium">📱 Cross-Device Sync</p>
-                <p className="font-nyt text-blue-600 text-xs mt-1">
-                  {process.env.REACT_APP_SUPABASE_URL && process.env.REACT_APP_SUPABASE_URL !== 'YOUR_SUPABASE_URL' 
-                    ? '✅ Supabase configured - Real-time sync enabled' 
-                    : '⚠️ Supabase not configured - Data stays local to each device'}
-                </p>
-              </div>
-              <button 
-                onClick={async () => {
-                  try {
-                    const dbProfiles = await HybridPostsService.getAllPosts();
-                    if (dbProfiles.length > 0) {
-                      setProfiles(dbProfiles);
-                      localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
-                      console.log('🔄 Manual sync completed');
-                    }
-                  } catch (err) {
-                    console.log('🔄 Manual sync failed:', err);
-                  }
-                }}
-                className="font-nyt text-blue-600 text-xs underline px-3 py-1 border border-blue-300 rounded hover:bg-blue-100"
-              >
-                🔄 Sync Now
-              </button>
-            </div>
-            {(!process.env.REACT_APP_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL === 'YOUR_SUPABASE_URL') && (
-              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="font-nyt text-yellow-800 text-xs">
-                  <strong>To enable cross-device sync:</strong> Set up Supabase environment variables in your deployment.
-                </p>
-              </div>
-            )}
-          </div>
+
           
           {/* Mobile Layout - Single Column Sequence */}
           <div className="flex flex-col gap-6 w-full lg:hidden">
