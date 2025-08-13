@@ -1509,29 +1509,27 @@ export default function App() {
     loadProfiles();
   }, []);
 
-  // Add periodic sync for cross-device synchronization
-  useEffect(() => {
-    const syncInterval = setInterval(async () => {
-      try {
-        // Try to sync with database every 5 minutes
-        const dbProfiles = await HybridPostsService.getAllPosts();
-        if (dbProfiles.length > 0) {
-          // Check if we have new data from database
-          const currentIds = new Set(profiles.map(p => p.id));
-          const newProfiles = dbProfiles.filter(p => !currentIds.has(p.id));
-          
-          if (newProfiles.length > 0) {
-            console.log(`🔄 Found ${newProfiles.length} new profiles from database, updating...`);
-            setProfiles(dbProfiles);
-            localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
-          }
+  // Sync function to fetch latest data from database
+  const syncWithDatabase = useCallback(async () => {
+    try {
+      console.log('🔄 Syncing with database...');
+      const dbProfiles = await HybridPostsService.getAllPosts();
+      if (dbProfiles.length > 0) {
+        // Check if we have new data from database
+        const currentIds = new Set(profiles.map(p => p.id));
+        const newProfiles = dbProfiles.filter(p => !currentIds.has(p.id));
+        
+        if (newProfiles.length > 0) {
+          console.log(`🔄 Found ${newProfiles.length} new profiles from database, updating...`);
+          setProfiles(dbProfiles);
+          localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
+        } else {
+          console.log('🔄 No new profiles found, database is up to date');
         }
-      } catch (err) {
-        console.log('🔄 Periodic sync failed:', err);
       }
-    }, 300000); // Sync every 5 minutes (300,000 ms)
-
-    return () => clearInterval(syncInterval);
+    } catch (err) {
+      console.log('🔄 Database sync failed:', err);
+    }
   }, [profiles]);
 
   // Real-time Supabase subscriptions for instant cross-device updates
@@ -1621,6 +1619,10 @@ export default function App() {
     try {
       const newPost = await HybridPostsService.createPost(newProfile);
       setProfiles(prev => [...prev, newPost]);
+      
+      // Trigger sync to ensure all devices get the latest data
+      console.log('🔄 New post created, triggering database sync...');
+      setTimeout(() => syncWithDatabase(), 1000); // Small delay to ensure post is fully saved
     } catch (err) {
       console.error('Error creating post:', err);
       setError('Failed to create post. Please try again.');
@@ -1645,6 +1647,10 @@ export default function App() {
           ? { ...profile, comments: [...profile.comments, newComment] }
           : profile
       ));
+      
+      // Trigger sync to ensure all devices get the latest comment data
+      console.log('🔄 New comment added, triggering database sync...');
+      setTimeout(() => syncWithDatabase(), 1000); // Small delay to ensure comment is fully saved
     } catch (err) {
       console.error('Error adding comment:', err);
       setError('Failed to add comment. Please try again.');
@@ -1668,6 +1674,10 @@ export default function App() {
     try {
       await HybridPostsService.deletePost(profileId);
       setProfiles(prev => prev.filter(profile => profile.id !== profileId));
+      
+      // Trigger sync to ensure all devices get the latest data
+      console.log('🔄 Post deleted, triggering database sync...');
+      setTimeout(() => syncWithDatabase(), 1000); // Small delay to ensure deletion is fully processed
     } catch (err) {
       console.error('Error deleting post:', err);
       setError('Failed to delete post. Please try again.');
