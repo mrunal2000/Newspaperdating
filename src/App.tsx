@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
 import { Heart, MessageCircle } from 'lucide-react';
-import { HybridPostsService } from './services';
+import { HybridPostsService } from './services/hybridPostsService';
 import { Profile, Comment } from './types';
 
 // City-specific template posts
