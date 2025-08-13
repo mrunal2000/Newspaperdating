@@ -1221,6 +1221,14 @@ function AddPostForm({ onAddPost, isOpen, setIsOpen, currentCity }: { onAddPost:
     interests: ''
   });
 
+  // Update location when currentCity changes
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      location: `${currentCity}, CA`
+    }));
+  }, [currentCity]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.name && formData.age && formData.title && formData.description) {
