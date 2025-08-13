@@ -1450,6 +1450,7 @@ export default function App() {
 
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Load profiles from database/localStorage on component mount
   useEffect(() => {
@@ -1462,6 +1463,7 @@ export default function App() {
         if (storedProfiles && storedProfiles.length > 0) {
           console.log('📱 Loading profiles from localStorage for fast startup...');
           setProfiles(storedProfiles);
+          setIsLoading(false); // Stop loading since we have data
           
           // Try to sync with database in background (non-blocking)
           try {
@@ -1495,6 +1497,7 @@ export default function App() {
         setProfiles(initialProfiles);
         localStorage.setItem('newspaperDatingProfiles', JSON.stringify(initialProfiles));
         localStorage.setItem('newspaperDatingVersion', '2.3'); // New version
+        setIsLoading(false); // Stop loading
         
       } catch (err) {
         console.error('Error loading profiles:', err);
@@ -1503,6 +1506,7 @@ export default function App() {
         // Final fallback
         const fallbackProfiles = generateAllPosts();
         setProfiles(fallbackProfiles);
+        setIsLoading(false); // Stop loading
       }
     };
     
@@ -1745,6 +1749,16 @@ export default function App() {
 
   return (
     <div className="bg-[#F5F5F0] min-h-screen w-full">
+      {/* Loading Spinner - Top Left Corner */}
+      {isLoading && (
+        <div className="fixed top-4 left-4 z-50">
+          <div className="flex items-center space-x-2 bg-white border-2 border-black shadow-lg px-3 py-2 rounded">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+            <span className="font-nyt text-sm font-medium">Loading posts...</span>
+          </div>
+        </div>
+      )}
+      
       <div className="flex justify-center w-full px-4 sm:px-6 lg:px-8 py-7">
         <div className="flex flex-col gap-[33px] items-center justify-start w-full max-w-[1184px]">
           <NewspaperHeader 
