@@ -1523,28 +1523,7 @@ export default function App() {
     loadProfiles();
   }, []);
 
-  // Sync function to fetch latest data from database
-  const syncWithDatabase = useCallback(async () => {
-    try {
-      console.log('🔄 Syncing with database...');
-      const dbProfiles = await HybridPostsService.getAllPosts();
-      if (dbProfiles.length > 0) {
-        // Check if we have new data from database
-        const currentIds = new Set(profiles.map(p => p.id));
-        const newProfiles = dbProfiles.filter(p => !currentIds.has(p.id));
-        
-        if (newProfiles.length > 0) {
-          console.log(`🔄 Found ${newProfiles.length} new profiles from database, updating...`);
-          setProfiles(dbProfiles);
-          localStorage.setItem('newspaperDatingProfiles', JSON.stringify(dbProfiles));
-        } else {
-          console.log('🔄 No new profiles found, database is up to date');
-        }
-      }
-    } catch (err) {
-      console.log('🔄 Database sync failed:', err);
-    }
-  }, [profiles]);
+
 
   // Real-time Supabase subscriptions for instant cross-device updates
   useEffect(() => {
@@ -1634,9 +1613,8 @@ export default function App() {
       const newPost = await HybridPostsService.createPost(newProfile);
       setProfiles(prev => [...prev, newPost]);
       
-      // Trigger sync to ensure all devices get the latest data
-      console.log('🔄 New post created, triggering database sync...');
-      setTimeout(() => syncWithDatabase(), 1000); // Small delay to ensure post is fully saved
+      // No need to trigger sync - real-time subscriptions will handle updates
+      console.log('✅ New post created and added to local state');
     } catch (err) {
       console.error('Error creating post:', err);
       setError('Failed to create post. Please try again.');
@@ -1662,9 +1640,8 @@ export default function App() {
           : profile
       ));
       
-      // Trigger sync to ensure all devices get the latest comment data
-      console.log('🔄 New comment added, triggering database sync...');
-      setTimeout(() => syncWithDatabase(), 1000); // Small delay to ensure comment is fully saved
+      // No need to trigger sync - real-time subscriptions will handle updates
+      console.log('✅ New comment added to local state');
     } catch (err) {
       console.error('Error adding comment:', err);
       setError('Failed to add comment. Please try again.');
@@ -1689,9 +1666,8 @@ export default function App() {
       await HybridPostsService.deletePost(profileId);
       setProfiles(prev => prev.filter(profile => profile.id !== profileId));
       
-      // Trigger sync to ensure all devices get the latest data
-      console.log('🔄 Post deleted, triggering database sync...');
-      setTimeout(() => syncWithDatabase(), 1000); // Small delay to ensure deletion is fully processed
+      // No need to trigger sync - real-time subscriptions will handle updates
+      console.log('✅ Post deleted from local state');
     } catch (err) {
       console.error('Error deleting post:', err);
       setError('Failed to delete post. Please try again.');
