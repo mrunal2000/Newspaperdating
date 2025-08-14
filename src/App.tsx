@@ -524,14 +524,6 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
-  const [isLiking, setIsLiking] = useState(false);
-
-  const handleLike = async () => {
-    setIsLiking(true);
-    await onLikePost(profile.id);
-    // Reset after a short delay for visual feedback
-    setTimeout(() => setIsLiking(false), 500);
-  };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -710,21 +702,11 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, onLikePost,
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
-  const [isLiking, setIsLiking] = useState(false);
   
   // Debug: Log the image path being used
   console.log(`🖼️ ProfileCardWithImage rendering for city: ${currentCity}`);
   console.log(`🖼️ Image path: ${getCityImagePath(currentCity)}`);
   console.log(`🖼️ Profile location: ${profile.location}`);
-  
-
-
-  const handleLike = async () => {
-    setIsLiking(true);
-    await onLikePost(profile.id);
-    // Reset after a short delay for visual feedback
-    setTimeout(() => setIsLiking(false), 500);
-  };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
