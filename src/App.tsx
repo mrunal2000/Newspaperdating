@@ -691,12 +691,11 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
   );
 }
 
-function ProfileCardWithImage({ profile, onAddComment, onDeletePost, onLikePost, isUserPost, currentCity }: { 
+function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost, currentCity }: { 
   profile: Profile; 
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
   onDeletePost: (profileId: string) => void;
-  onLikePost: (profileId: string) => void;
-  isUserPost: boolean;
+  isUserPost: (profileId: string) => boolean;
   currentCity: string;
 }) {
   const [showComments, setShowComments] = useState(false);
@@ -842,16 +841,6 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, onLikePost,
           {/* Action buttons */}
           <div className="flex gap-2 mt-3">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLike}
-              disabled={isLiking}
-              className={`flex items-center gap-2 ${isLiking ? 'animate-pulse' : ''}`}
-            >
-              <Heart className={`h-4 w-4 ${isLiking ? 'text-red-500' : ''}`} />
-              {isLiking ? 'Liking...' : 'Like'}
-            </Button>
-            <Button
               size="sm"
               variant="newspaper"
               onClick={() => setShowComments(!showComments)}
@@ -860,7 +849,7 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, onLikePost,
               <MessageCircle className="w-3 h-3" />
               {profile.comments.length} Comments
             </Button>
-            {isUserPost && (
+            {isUserPost(profile.id) && (
               <Button
                 size="sm"
                 variant="newspaper"
