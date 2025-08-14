@@ -515,12 +515,11 @@ function formatTimestamp(date: Date): string {
   }
 }
 
-function ProfileCard({ profile, onAddComment, onDeletePost, onLikePost, isUserPost }: { 
-  profile: Profile; 
+function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
+  profile: Profile;
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
   onDeletePost: (profileId: string) => void;
-  onLikePost: (profileId: string) => void;
-  isUserPost: boolean;
+  isUserPost: (profileId: string) => boolean;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -1260,8 +1259,7 @@ function AddPostForm({ onAddPost, isOpen, setIsOpen, currentCity }: { onAddPost:
         location: formData.location,
         description: formData.description,
         interests: formData.interests.split(',').map(i => i.trim()).filter(i => i.length > 0),
-        comments: [],
-        likes: 0
+        comments: []
       };
       onAddPost(newProfile);
       setFormData({
@@ -1453,12 +1451,8 @@ export default function App() {
         // Convert date strings back to Date objects
         return parsed.map((profile: any) => ({
           ...profile,
-          likes: profile.likes || 0, // Ensure likes field exists
           createdAt: new Date(profile.createdAt),
-          comments: profile.comments.map((comment: any) => ({
-            ...comment,
-            createdAt: new Date(comment.createdAt)
-          }))
+          comments: profile.comments || []
         }));
       } else {
         // Clear old data and return null to force regeneration
@@ -1733,29 +1727,7 @@ export default function App() {
     }
   };
 
-  const likePost = async (profileId: string) => {
-    try {
-      // Update local state immediately for better UX
-      setProfiles(prev => prev.map(profile => 
-        profile.id === profileId 
-          ? { ...profile, likes: (profile.likes || 0) + 1 }
-          : profile
-      ));
-      
-      // Try to update in database
-      try {
-        const currentProfile = profiles.find(p => p.id === profileId);
-        const currentLikes = currentProfile?.likes || 0;
-        await HybridPostsService.updatePost(profileId, { likes: currentLikes + 1 });
-        console.log('✅ Post liked and updated in database');
-      } catch (dbErr) {
-        console.warn('⚠️ Database update failed, keeping local change:', dbErr);
-      }
-    } catch (err) {
-      console.error('Error liking post:', err);
-      setError('Failed to like post. Please try again.');
-    }
-  };
+
 
   const isUserPost = (profileId: string) => {
     const result = profileId.startsWith('user-');
