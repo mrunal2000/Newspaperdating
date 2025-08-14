@@ -1177,7 +1177,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }
     <div className="box-border content-stretch flex flex-col gap-[18px] items-center justify-start p-0 relative shrink-0 w-full">
       <div className="relative w-full px-4">
         <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px]">
-        <p className="block leading-[normal]">The daily connection</p>
+        <p className="block leading-[normal]">The Daily Connection</p>
         </div>
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0 hidden lg:block">
           <Button
