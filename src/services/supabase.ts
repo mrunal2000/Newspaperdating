@@ -48,6 +48,7 @@ export const convertDatabasePostToProfile = (dbPost: DatabasePost, comments: Dat
 
 // Convert app types to database types
 export const convertProfileToDatabasePost = (profile: any) => ({
+  id: profile.id, // Include the ID field
   name: profile.name,
   age: profile.age,
   title: profile.title,

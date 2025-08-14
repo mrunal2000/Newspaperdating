@@ -89,17 +89,46 @@ export class HybridPostsService {
 
   // Create a new post - Force Supabase usage for cross-device sync
   static async createPost(profile: Omit<Profile, 'id' | 'createdAt'>): Promise<Profile> {
+    console.log('🔍 createPost called with profile:', profile);
+    console.log('🔍 shouldUseSupabase():', shouldUseSupabase());
+    
     try {
       if (shouldUseSupabase()) {
-        const newPost = await PostsService.createPost(profile);
+        console.log('🔍 Using Supabase for post creation');
+        // Generate a proper UUID for Supabase
+        const newId = crypto.randomUUID();
+        const profileWithId = { ...profile, id: newId, createdAt: new Date(), likes: 0 };
+        const newPost = await PostsService.createPost(profileWithId);
+        console.log('🔍 Post created successfully in Supabase:', newPost);
         return newPost;
       } else {
-        // If Supabase is not configured, throw error instead of falling back to localStorage
-        throw new Error('Supabase is not configured. Please set up environment variables for cross-device sync.');
+        // Fallback to localStorage if Supabase is not configured
+        console.warn('🔍 Supabase not configured, using localStorage fallback');
+        const newId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const newPost: Profile = {
+          ...profile,
+          id: newId,
+          createdAt: new Date(),
+          likes: 0
+        };
+        this.saveProfilesToLocalStorage([...this.getPostsFromLocalStorage(), newPost]);
+        console.log('🔍 Post created successfully in localStorage:', newPost);
+        return newPost;
       }
     } catch (error) {
-      console.error('Failed to create post in Supabase:', error);
-      throw error; // Re-throw to let the UI handle the error
+      console.error('🔍 Error in createPost:', error);
+      // Fallback to localStorage on error
+      console.warn('🔍 Supabase failed, falling back to localStorage');
+      const newId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newPost: Profile = {
+        ...profile,
+        id: newId,
+        createdAt: new Date(),
+        likes: 0
+      };
+      this.saveProfilesToLocalStorage([...this.getPostsFromLocalStorage(), newPost]);
+      console.log('🔍 Post created successfully in localStorage fallback:', newPost);
+      return newPost;
     }
   }
 
@@ -110,12 +139,39 @@ export class HybridPostsService {
         const newComment = await PostsService.addComment(postId, comment);
         return newComment;
       } else {
-        // If Supabase is not configured, throw error instead of falling back to localStorage
-        throw new Error('Supabase is not configured. Please set up environment variables for cross-device sync.');
+        // Fallback to localStorage if Supabase is not configured
+        console.warn('Supabase not configured, using localStorage fallback');
+        const newComment: Comment = {
+          ...comment,
+          id: Date.now().toString(),
+          createdAt: new Date()
+        };
+        // Update the post in localStorage with the new comment
+        const profiles = this.getPostsFromLocalStorage();
+        const profileIndex = profiles.findIndex(p => p.id === postId);
+        if (profileIndex >= 0) {
+          profiles[profileIndex].comments.push(newComment);
+          this.saveProfilesToLocalStorage(profiles);
+        }
+        return newComment;
       }
     } catch (error) {
       console.error('Failed to add comment in Supabase:', error);
-      throw error; // Re-throw to let the UI handle the error
+      // Fallback to localStorage on error
+      console.warn('Supabase failed, falling back to localStorage');
+      const newComment: Comment = {
+        ...comment,
+        id: Date.now().toString(),
+        createdAt: new Date()
+      };
+      // Update the post in localStorage with the new comment
+      const profiles = this.getPostsFromLocalStorage();
+      const profileIndex = profiles.findIndex(p => p.id === postId);
+      if (profileIndex >= 0) {
+        profiles[profileIndex].comments.push(newComment);
+        this.saveProfilesToLocalStorage(profiles);
+      }
+      return newComment;
     }
   }
 

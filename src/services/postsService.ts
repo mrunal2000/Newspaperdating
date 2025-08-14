@@ -162,7 +162,7 @@ export class PostsService {
   }
 
   // Create a new post
-  static async createPost(profile: Omit<Profile, 'id' | 'createdAt'>): Promise<Profile> {
+  static async createPost(profile: Omit<Profile, 'id' | 'createdAt'> & { id?: string }): Promise<Profile> {
     try {
       const postData = convertProfileToDatabasePost(profile);
       console.log('🔄 Attempting to create post in Supabase:', postData);

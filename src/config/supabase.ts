@@ -5,8 +5,18 @@ export const SUPABASE_CONFIG = {
   anonKey: process.env.REACT_APP_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
 };
 
+// Debug logging
+console.log('🔍 Supabase Config Debug:', {
+  url: SUPABASE_CONFIG.url,
+  anonKey: SUPABASE_CONFIG.anonKey ? `${SUPABASE_CONFIG.anonKey.substring(0, 20)}...` : 'undefined',
+  envUrl: process.env.REACT_APP_SUPABASE_URL,
+  envKey: process.env.REACT_APP_SUPABASE_ANON_KEY ? `${process.env.REACT_APP_SUPABASE_ANON_KEY.substring(0, 20)}...` : 'undefined'
+});
+
 // Check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return SUPABASE_CONFIG.url !== 'YOUR_SUPABASE_URL' && 
+  const configured = SUPABASE_CONFIG.url !== 'YOUR_SUPABASE_URL' && 
          SUPABASE_CONFIG.anonKey !== 'YOUR_SUPABASE_ANON_KEY';
+  console.log('🔍 Supabase configured:', configured);
+  return configured;
 };
