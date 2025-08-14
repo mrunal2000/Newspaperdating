@@ -6,12 +6,16 @@ export class PostsService {
   static async checkDatabaseHealth(): Promise<{ healthy: boolean; error?: string; tables?: string[] }> {
     try {
       console.log('🔍 Checking database health...');
+      console.log('🔍 Supabase client:', supabase);
       
       // Try to read from posts table
-      const { error: postsError } = await supabase
+      console.log('🔍 Testing posts table read...');
+      const { data: postsTest, error: postsError } = await supabase
         .from('posts')
         .select('id')
         .limit(1);
+      
+      console.log('🔍 Posts test result:', { data: postsTest, error: postsError });
       
       if (postsError) {
         console.error('❌ Posts table error:', postsError);
@@ -19,10 +23,13 @@ export class PostsService {
       }
       
       // Try to read from comments table
-      const { error: commentsError } = await supabase
+      console.log('🔍 Testing comments table read...');
+      const { data: commentsTest, error: commentsError } = await supabase
         .from('comments')
         .select('id')
         .limit(1);
+      
+      console.log('🔍 Comments test result:', { data: commentsTest, error: commentsError });
       
       if (commentsError) {
         console.error('❌ Comments table error:', commentsError);
@@ -164,11 +171,15 @@ export class PostsService {
   // Create a new post
   static async createPost(profile: Omit<Profile, 'id' | 'createdAt'> & { id?: string }): Promise<Profile> {
     try {
+      console.log('🔍 PostsService.createPost called with profile:', profile);
+      console.log('🔍 Profile ID:', profile.id);
+      console.log('🔍 Supabase client:', supabase);
+      
       const postData = convertProfileToDatabasePost(profile);
-      console.log('🔄 Attempting to create post in Supabase:', postData);
+      console.log('🔄 Converted to database format:', postData);
+      console.log('🔄 Post data JSON:', JSON.stringify(postData, null, 2));
       
-      console.log('🔄 Inserting post data:', JSON.stringify(postData, null, 2));
-      
+      console.log('🔄 Attempting to insert into Supabase posts table...');
       const { data: newPost, error } = await supabase
         .from('posts')
         .insert([postData])
@@ -177,6 +188,12 @@ export class PostsService {
 
       if (error) {
         console.error('❌ Supabase insert error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 

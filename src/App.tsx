@@ -386,8 +386,7 @@ function generateCityPosts(city: string, count: number): Profile[] {
         description: randomDescription,
         interests: randomInterests,
         createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last 7 days
-        comments: [],
-        likes: Math.floor(Math.random() * 50) // Random likes between 0-49
+        comments: []
       });
     }
     return posts;
@@ -428,8 +427,7 @@ function generateCityPosts(city: string, count: number): Profile[] {
       description: randomDescription,
       interests: randomInterests,
       createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last 7 days
-      comments: [],
-      likes: Math.floor(Math.random() * 50) // Random likes between 0-49
+      comments: []
     });
   }
   
@@ -605,13 +603,14 @@ function ProfileCard({ profile, onAddComment, onDeletePost, onLikePost, isUserPo
         {/* Action buttons */}
         <div className="flex gap-2 mt-3">
           <Button
+            variant="outline"
             size="sm"
-            variant="newspaper"
             onClick={handleLike}
-            className={`text-xs ${isLiking ? 'animate-pulse' : ''}`}
+            disabled={isLiking}
+            className={`flex items-center gap-2 ${isLiking ? 'animate-pulse' : ''}`}
           >
-            <Heart className={`w-3 h-3 ${isLiking ? 'text-red-500' : ''}`} />
-            {isLiking ? 'Liking...' : `${profile.likes} ${profile.likes === 1 ? 'Like' : 'Likes'}`}
+            <Heart className={`h-4 w-4 ${isLiking ? 'text-red-500' : ''}`} />
+            {isLiking ? 'Liking...' : 'Like'}
           </Button>
           <Button
             size="sm"
@@ -872,13 +871,14 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, onLikePost,
           {/* Action buttons */}
           <div className="flex gap-2 mt-3">
             <Button
+              variant="outline"
               size="sm"
-              variant="newspaper"
               onClick={handleLike}
-              className={`text-xs ${isLiking ? 'animate-pulse' : ''}`}
+              disabled={isLiking}
+              className={`flex items-center gap-2 ${isLiking ? 'animate-pulse' : ''}`}
             >
-              <Heart className={`w-3 h-3 ${isLiking ? 'text-red-500' : ''}`} />
-              {isLiking ? 'Liking...' : `${profile.likes} ${profile.likes === 1 ? 'Like' : 'Likes'}`}
+              <Heart className={`h-4 w-4 ${isLiking ? 'text-red-500' : ''}`} />
+              {isLiking ? 'Liking...' : 'Like'}
             </Button>
             <Button
               size="sm"
@@ -1575,17 +1575,31 @@ export default function App() {
             { event: '*', schema: 'public', table: 'posts' },
             async (payload) => {
               console.log('🔄 Real-time post update:', payload);
+              console.log('🔍 Current profiles before update:', profiles.length);
               
               if (payload.eventType === 'INSERT') {
                 // New post added
+                console.log('🔍 INSERT event, fetching new post...');
                 const newPost = await HybridPostsService.getPostById(payload.new.id);
+                console.log('🔍 Fetched new post:', newPost);
                 if (newPost) {
-                  setProfiles(prev => [...prev, newPost]);
+                  setProfiles(prev => {
+                    console.log('🔍 Adding new post via real-time, previous count:', prev.length);
+                    const updated = [...prev, newPost];
+                    console.log('🔍 Updated count via real-time:', updated.length);
+                    return updated;
+                  });
                   console.log('✅ New post added via real-time subscription');
                 }
               } else if (payload.eventType === 'DELETE') {
                 // Post deleted
-                setProfiles(prev => prev.filter(p => p.id !== payload.old.id));
+                console.log('🔍 DELETE event, removing post:', payload.old.id);
+                setProfiles(prev => {
+                  console.log('🔍 Removing post via real-time, previous count:', prev.length);
+                  const updated = prev.filter(p => p.id !== payload.old.id);
+                  console.log('🔍 Updated count via real-time:', updated.length);
+                  return updated;
+                });
                 console.log('✅ Post deleted via real-time subscription');
               }
             }
@@ -1638,24 +1652,36 @@ export default function App() {
 
 
   const addNewPost = async (newProfile: Omit<Profile, 'id' | 'createdAt'>) => {
+    console.log('🔍 addNewPost called with:', newProfile);
+    console.log('🔍 Current profiles count:', profiles.length);
+    
     try {
+      console.log('🔍 Calling HybridPostsService.createPost...');
       const newPost = await HybridPostsService.createPost(newProfile);
-      setProfiles(prev => [...prev, newPost]);
+      console.log('🔍 HybridPostsService.createPost returned:', newPost);
+      
+      setProfiles(prev => {
+        console.log('🔍 Setting profiles, previous count:', prev.length);
+        const updated = [...prev, newPost];
+        console.log('🔍 Updated profiles count:', updated.length);
+        return updated;
+      });
       
       // No need to trigger sync - real-time subscriptions will handle updates
       console.log('✅ New post created and added to local state');
     } catch (err) {
-      console.error('Error creating post:', err);
+      console.error('❌ Error creating post:', err);
       setError('Failed to create post. Please try again.');
       
       // Fallback to local creation
+      console.log('🔍 Using fallback local creation...');
       const newId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const newPost: Profile = {
         ...newProfile,
         id: newId,
-        createdAt: new Date(),
-        likes: 0
+        createdAt: new Date()
       };
+      console.log('🔍 Fallback post created:', newPost);
       setProfiles(prev => [...prev, newPost]);
     }
   };
@@ -1792,6 +1818,12 @@ export default function App() {
   // Debug: Log all profiles and their IDs
   console.log('🔍 All profiles:', profiles.map(p => ({ id: p.id, name: p.name, location: p.location })));
   console.log('🔍 City profiles for', currentCity, ':', cityProfiles.map(p => ({ id: p.id, name: p.name, location: p.location })));
+
+  // Debug: Log when profiles change
+  useEffect(() => {
+    console.log('🔍 Profiles state changed, count:', profiles.length);
+    console.log('🔍 Profiles:', profiles.map(p => ({ id: p.id, name: p.name, location: p.location })));
+  }, [profiles]);
 
   return (
     <div className="bg-[#F5F5F0] min-h-screen w-full">

@@ -97,7 +97,7 @@ export class HybridPostsService {
         console.log('🔍 Using Supabase for post creation');
         // Generate a proper UUID for Supabase
         const newId = crypto.randomUUID();
-        const profileWithId = { ...profile, id: newId, createdAt: new Date(), likes: 0 };
+        const profileWithId = { ...profile, id: newId, createdAt: new Date() };
         const newPost = await PostsService.createPost(profileWithId);
         console.log('🔍 Post created successfully in Supabase:', newPost);
         return newPost;
@@ -108,8 +108,7 @@ export class HybridPostsService {
         const newPost: Profile = {
           ...profile,
           id: newId,
-          createdAt: new Date(),
-          likes: 0
+          createdAt: new Date()
         };
         this.saveProfilesToLocalStorage([...this.getPostsFromLocalStorage(), newPost]);
         console.log('🔍 Post created successfully in localStorage:', newPost);
@@ -123,8 +122,7 @@ export class HybridPostsService {
       const newPost: Profile = {
         ...profile,
         id: newId,
-        createdAt: new Date(),
-        likes: 0
+        createdAt: new Date()
       };
       this.saveProfilesToLocalStorage([...this.getPostsFromLocalStorage(), newPost]);
       console.log('🔍 Post created successfully in localStorage fallback:', newPost);
