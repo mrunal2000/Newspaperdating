@@ -602,16 +602,6 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
         {/* Action buttons */}
         <div className="flex gap-2 mt-3">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLike}
-            disabled={isLiking}
-            className={`flex items-center gap-2 ${isLiking ? 'animate-pulse' : ''}`}
-          >
-            <Heart className={`h-4 w-4 ${isLiking ? 'text-red-500' : ''}`} />
-            {isLiking ? 'Liking...' : 'Like'}
-          </Button>
-          <Button
             size="sm"
             variant="newspaper"
             onClick={() => setShowComments(!showComments)}
