@@ -602,7 +602,7 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
             <MessageCircle className="w-3 h-3" />
             {profile.comments.length} Comments
           </Button>
-          {isUserPost && (
+          {isUserPost(profile.id) && (
             <Button
               size="sm"
               variant="newspaper"
