@@ -386,7 +386,8 @@ function generateCityPosts(city: string, count: number): Profile[] {
         description: randomDescription,
         interests: randomInterests,
         createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last 7 days
-        comments: []
+        comments: [],
+        likes: Math.floor(Math.random() * 50) // Random likes between 0-49
       });
     }
     return posts;
@@ -427,7 +428,8 @@ function generateCityPosts(city: string, count: number): Profile[] {
       description: randomDescription,
       interests: randomInterests,
       createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random time in last 7 days
-      comments: []
+      comments: [],
+      likes: Math.floor(Math.random() * 50) // Random likes between 0-49
     });
   }
   
@@ -515,15 +517,24 @@ function formatTimestamp(date: Date): string {
   }
 }
 
-function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: { 
+function ProfileCard({ profile, onAddComment, onDeletePost, onLikePost, isUserPost }: { 
   profile: Profile; 
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
   onDeletePost: (profileId: string) => void;
+  onLikePost: (profileId: string) => void;
   isUserPost: boolean;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
+  const [isLiking, setIsLiking] = useState(false);
+
+  const handleLike = async () => {
+    setIsLiking(true);
+    await onLikePost(profile.id);
+    // Reset after a short delay for visual feedback
+    setTimeout(() => setIsLiking(false), 500);
+  };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -596,11 +607,11 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
           <Button
             size="sm"
             variant="newspaper"
-            onClick={() => {}}
-            className="text-xs"
+            onClick={handleLike}
+            className={`text-xs ${isLiking ? 'animate-pulse' : ''}`}
           >
-            <Heart className="w-3 h-3" />
-            Like
+            <Heart className={`w-3 h-3 ${isLiking ? 'text-red-500' : ''}`} />
+            {isLiking ? 'Liking...' : `${profile.likes} ${profile.likes === 1 ? 'Like' : 'Likes'}`}
           </Button>
           <Button
             size="sm"
@@ -700,16 +711,18 @@ function ProfileCard({ profile, onAddComment, onDeletePost, isUserPost }: {
   );
 }
 
-function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost, currentCity }: { 
+function ProfileCardWithImage({ profile, onAddComment, onDeletePost, onLikePost, isUserPost, currentCity }: { 
   profile: Profile; 
   onAddComment: (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => void;
   onDeletePost: (profileId: string) => void;
+  onLikePost: (profileId: string) => void;
   isUserPost: boolean;
   currentCity: string;
 }) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [commentAuthor, setCommentAuthor] = useState('');
+  const [isLiking, setIsLiking] = useState(false);
   
   // Debug: Log the image path being used
   console.log(`🖼️ ProfileCardWithImage rendering for city: ${currentCity}`);
@@ -717,6 +730,13 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost,
   console.log(`🖼️ Profile location: ${profile.location}`);
   
 
+
+  const handleLike = async () => {
+    setIsLiking(true);
+    await onLikePost(profile.id);
+    // Reset after a short delay for visual feedback
+    setTimeout(() => setIsLiking(false), 500);
+  };
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -854,11 +874,11 @@ function ProfileCardWithImage({ profile, onAddComment, onDeletePost, isUserPost,
             <Button
               size="sm"
               variant="newspaper"
-              onClick={() => {}}
-              className="text-xs"
+              onClick={handleLike}
+              className={`text-xs ${isLiking ? 'animate-pulse' : ''}`}
             >
-              <Heart className="w-3 h-3" />
-              Like
+              <Heart className={`w-3 h-3 ${isLiking ? 'text-red-500' : ''}`} />
+              {isLiking ? 'Liking...' : `${profile.likes} ${profile.likes === 1 ? 'Like' : 'Likes'}`}
             </Button>
             <Button
               size="sm"
@@ -1157,7 +1177,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }
     <div className="box-border content-stretch flex flex-col gap-[18px] items-center justify-start p-0 relative shrink-0 w-full">
       <div className="relative w-full px-4">
         <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px]">
-        <p className="block leading-[normal]">what are you looking for?</p>
+        <p className="block leading-[normal]">The daily connection</p>
         </div>
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0 hidden lg:block">
           <Button
@@ -1175,7 +1195,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }
         <div className="box-border content-stretch flex flex-col lg:flex-row font-nyt items-center justify-between leading-[0] not-italic p-0 relative shrink-0 text-[#000000] text-[14px] lg:text-[16px] text-center text-nowrap w-full gap-2 lg:gap-0">
           <div className="flex flex-col justify-end relative shrink-0">
             <p className="block leading-[normal] text-nowrap whitespace-pre">
-              live, love, laugh
+              Where stories begin
             </p>
           </div>
           <div className="flex flex-col justify-end relative shrink-0">
@@ -1240,7 +1260,8 @@ function AddPostForm({ onAddPost, isOpen, setIsOpen, currentCity }: { onAddPost:
         location: formData.location,
         description: formData.description,
         interests: formData.interests.split(',').map(i => i.trim()).filter(i => i.length > 0),
-        comments: []
+        comments: [],
+        likes: 0
       };
       onAddPost(newProfile);
       setFormData({
@@ -1366,6 +1387,9 @@ function VerticalDivider() {
 }
 
 export default function App() {
+  // Current version for localStorage compatibility
+  const currentVersion = '2.4'; // Version for likes field
+  
   // Load saved city from localStorage or default to New York
   const [currentCity, setCurrentCity] = useState(() => {
     const savedCity = localStorage.getItem('newspaperDatingCurrentCity');
@@ -1423,13 +1447,13 @@ export default function App() {
     try {
       const stored = localStorage.getItem('newspaperDatingProfiles');
       const version = localStorage.getItem('newspaperDatingVersion');
-      const currentVersion = '2.0'; // Version for 20 posts per city
       
       if (stored && version === currentVersion) {
         const parsed = JSON.parse(stored);
         // Convert date strings back to Date objects
         return parsed.map((profile: any) => ({
           ...profile,
+          likes: profile.likes || 0, // Ensure likes field exists
           createdAt: new Date(profile.createdAt),
           comments: profile.comments.map((comment: any) => ({
             ...comment,
@@ -1509,7 +1533,7 @@ export default function App() {
         // Set profiles and save to localStorage
         setProfiles(initialProfiles);
         localStorage.setItem('newspaperDatingProfiles', JSON.stringify(initialProfiles));
-        localStorage.setItem('newspaperDatingVersion', '2.3'); // New version
+        localStorage.setItem('newspaperDatingVersion', currentVersion); // New version for likes field
         setIsLoading(false); // Stop loading
         
       } catch (err) {
@@ -1519,6 +1543,8 @@ export default function App() {
         // Final fallback
         const fallbackProfiles = generateAllPosts();
         setProfiles(fallbackProfiles);
+        localStorage.setItem('newspaperDatingProfiles', JSON.stringify(fallbackProfiles));
+        localStorage.setItem('newspaperDatingVersion', currentVersion);
         setIsLoading(false); // Stop loading
       }
     };
@@ -1627,7 +1653,8 @@ export default function App() {
       const newPost: Profile = {
         ...newProfile,
         id: newId,
-        createdAt: new Date()
+        createdAt: new Date(),
+        likes: 0
       };
       setProfiles(prev => [...prev, newPost]);
     }
@@ -1680,8 +1707,34 @@ export default function App() {
     }
   };
 
+  const likePost = async (profileId: string) => {
+    try {
+      // Update local state immediately for better UX
+      setProfiles(prev => prev.map(profile => 
+        profile.id === profileId 
+          ? { ...profile, likes: (profile.likes || 0) + 1 }
+          : profile
+      ));
+      
+      // Try to update in database
+      try {
+        const currentProfile = profiles.find(p => p.id === profileId);
+        const currentLikes = currentProfile?.likes || 0;
+        await HybridPostsService.updatePost(profileId, { likes: currentLikes + 1 });
+        console.log('✅ Post liked and updated in database');
+      } catch (dbErr) {
+        console.warn('⚠️ Database update failed, keeping local change:', dbErr);
+      }
+    } catch (err) {
+      console.error('Error liking post:', err);
+      setError('Failed to like post. Please try again.');
+    }
+  };
+
   const isUserPost = (profileId: string) => {
-    return profileId.startsWith('user-');
+    const result = profileId.startsWith('user-');
+    console.log(`🔍 Checking if post ${profileId} is user post: ${result}`);
+    return result;
   };
 
 
@@ -1735,6 +1788,10 @@ export default function App() {
       console.log(`  Profile ${index + 1}: "${profile.location}" -> matches "${currentCity}": ${matches}`);
     });
   }
+
+  // Debug: Log all profiles and their IDs
+  console.log('🔍 All profiles:', profiles.map(p => ({ id: p.id, name: p.name, location: p.location })));
+  console.log('🔍 City profiles for', currentCity, ':', cityProfiles.map(p => ({ id: p.id, name: p.name, location: p.location })));
 
   return (
     <div className="bg-[#F5F5F0] min-h-screen w-full">
@@ -1802,6 +1859,7 @@ export default function App() {
                 profile={centerColumnProfiles[0]} 
                 onAddComment={addComment}
                 onDeletePost={deletePost}
+                onLikePost={likePost}
                 isUserPost={isUserPost(centerColumnProfiles[0].id)}
                 currentCity={currentCity}
               />
@@ -1817,6 +1875,7 @@ export default function App() {
                 profile={profile} 
                 onAddComment={addComment}
                 onDeletePost={deletePost}
+                onLikePost={likePost}
                 isUserPost={isUserPost(profile.id)}
               />
             ))}
@@ -1832,6 +1891,7 @@ export default function App() {
                   profile={profile} 
                   onAddComment={addComment}
                   onDeletePost={deletePost}
+                  onLikePost={likePost}
                   isUserPost={isUserPost(profile.id)}
                 />
               ))}
@@ -1848,6 +1908,7 @@ export default function App() {
                     profile={profile} 
                     onAddComment={addComment}
                     onDeletePost={deletePost}
+                    onLikePost={likePost}
                     isUserPost={isUserPost(profile.id)}
                     currentCity={currentCity}
                   />
@@ -1857,6 +1918,7 @@ export default function App() {
                     profile={profile} 
                     onAddComment={addComment}
                     onDeletePost={deletePost}
+                    onLikePost={likePost}
                     isUserPost={isUserPost(profile.id)}
                   />
                 );
@@ -1874,6 +1936,7 @@ export default function App() {
                   profile={profile} 
                   onAddComment={addComment}
                   onDeletePost={deletePost}
+                  onLikePost={likePost}
                   isUserPost={isUserPost(profile.id)}
                 />
               ))}

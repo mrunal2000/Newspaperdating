@@ -16,4 +16,5 @@ export interface Profile {
   interests: string[];
   createdAt: Date;
   comments: Comment[];
+  likes: number;
 }

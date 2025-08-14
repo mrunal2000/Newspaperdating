@@ -176,6 +176,7 @@ export class HybridPostsService {
         const parsed = JSON.parse(stored);
         return parsed.map((profile: any) => ({
           ...profile,
+          likes: profile.likes || 0, // Ensure likes field exists
           createdAt: new Date(profile.createdAt),
           comments: profile.comments.map((comment: any) => ({
             ...comment,
@@ -192,7 +193,7 @@ export class HybridPostsService {
   private static saveProfilesToLocalStorage(profiles: Profile[]): void {
     try {
       localStorage.setItem('newspaperDatingProfiles', JSON.stringify(profiles));
-      localStorage.setItem('newspaperDatingVersion', '2.0');
+      localStorage.setItem('newspaperDatingVersion', '2.4'); // Updated version for likes field
     } catch (error) {
       console.error('Error saving to localStorage:', error);
     }

@@ -8,9 +8,13 @@ CREATE TABLE IF NOT EXISTS posts (
   description TEXT NOT NULL,
   image VARCHAR(500),
   interests TEXT[] DEFAULT '{}',
+  likes INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add likes column to existing posts table if it doesn't exist
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0;
 
 -- Create the comments table
 CREATE TABLE IF NOT EXISTS comments (
@@ -68,8 +72,8 @@ CREATE TRIGGER update_posts_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert some sample data (optional)
-INSERT INTO posts (name, age, title, location, description, interests) VALUES
-('Alex', 28, 'Seeking Coffee & Conversation in the City', 'San Francisco, CA', 'SF transplant looking for someone to explore hidden coffee shops and rooftop bars with. Love discovering new neighborhoods and sharing stories over craft cocktails.', ARRAY['Coffee', 'Art', 'Live Music']),
-('Jordan', 32, 'Brooklyn Artist Looking for Inspiration', 'New York, NY', 'Brooklyn-based painter seeking someone who appreciates art, live music, and late-night conversations about life, love, and everything in between.', ARRAY['Painting', 'Jazz', 'Brooklyn']),
-('Sam', 29, 'Venice Beach Creative Seeking Sunshine Partner', 'Los Angeles, CA', 'Venice Beach local who believes in the power of sunshine, creativity, and authentic connections. Let''s build sandcastles and dreams together.', ARRAY['Beach', 'Creativity', 'Sunshine'])
+INSERT INTO posts (name, age, title, location, description, interests, likes) VALUES
+('Alex', 28, 'Seeking Coffee & Conversation in the City', 'San Francisco, CA', 'SF transplant looking for someone to explore hidden coffee shops and rooftop bars with. Love discovering new neighborhoods and sharing stories over craft cocktails.', ARRAY['Coffee', 'Art', 'Live Music'], 12),
+('Jordan', 32, 'Brooklyn Artist Looking for Inspiration', 'New York, NY', 'Brooklyn-based painter seeking someone who appreciates art, live music, and late-night conversations about life, love, and everything in between.', ARRAY['Painting', 'Jazz', 'Brooklyn'], 8),
+('Sam', 29, 'Venice Beach Creative Seeking Sunshine Partner', 'Los Angeles, CA', 'Venice Beach local who believes in the power of sunshine, creativity, and authentic connections. Let''s build sandcastles and dreams together.', ARRAY['Beach', 'Creativity', 'Sunshine'], 15)
 ON CONFLICT DO NOTHING;
