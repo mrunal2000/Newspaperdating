@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { shouldUseSupabase } from './services/supabase';
 import { Button } from './components/minimal/button';
 import { Badge } from './components/minimal/badge';
-import { Heart, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { HybridPostsService } from './services/hybridPostsService';
 import { Profile, Comment } from './types';
 
@@ -1698,6 +1698,8 @@ export default function App() {
 
 
 
+
+
   // Filter profiles by current city - more robust matching
   const cityProfiles = profiles.filter(profile => {
     const location = profile.location.toLowerCase();
@@ -1824,8 +1826,7 @@ export default function App() {
                 profile={centerColumnProfiles[0]} 
                 onAddComment={addComment}
                 onDeletePost={deletePost}
-                onLikePost={likePost}
-                isUserPost={isUserPost(centerColumnProfiles[0].id)}
+                isUserPost={isUserPost}
                 currentCity={currentCity}
               />
             )}
@@ -1840,8 +1841,7 @@ export default function App() {
                 profile={profile} 
                 onAddComment={addComment}
                 onDeletePost={deletePost}
-                onLikePost={likePost}
-                isUserPost={isUserPost(profile.id)}
+                isUserPost={isUserPost}
               />
             ))}
           </div>
@@ -1856,8 +1856,7 @@ export default function App() {
                   profile={profile} 
                   onAddComment={addComment}
                   onDeletePost={deletePost}
-                  onLikePost={likePost}
-                  isUserPost={isUserPost(profile.id)}
+                  isUserPost={isUserPost}
                 />
               ))}
             </div>
@@ -1873,8 +1872,7 @@ export default function App() {
                     profile={profile} 
                     onAddComment={addComment}
                     onDeletePost={deletePost}
-                    onLikePost={likePost}
-                    isUserPost={isUserPost(profile.id)}
+                    isUserPost={isUserPost}
                     currentCity={currentCity}
                   />
                 ) : (
@@ -1883,8 +1881,7 @@ export default function App() {
                     profile={profile} 
                     onAddComment={addComment}
                     onDeletePost={deletePost}
-                    onLikePost={likePost}
-                    isUserPost={isUserPost(profile.id)}
+                    isUserPost={isUserPost}
                   />
                 );
               })}
@@ -1901,8 +1898,7 @@ export default function App() {
                   profile={profile} 
                   onAddComment={addComment}
                   onDeletePost={deletePost}
-                  onLikePost={likePost}
-                  isUserPost={isUserPost(profile.id)}
+                  isUserPost={isUserPost}
                 />
               ))}
             </div>
