@@ -491,10 +491,13 @@ function getCityImagePath(city: string): string {
   const availableImages = cityImageMap[city];
   if (availableImages && availableImages.length > 0) {
     // Return the first available image (primary format)
-    return `/${availableImages[0]}`;
+    const imagePath = `/${availableImages[0]}`;
+    console.log(`🖼️ getCityImagePath: ${city} -> ${imagePath}`);
+    return imagePath;
   }
   
   // Fallback to San Francisco if no city-specific image is found
+  console.log(`🖼️ getCityImagePath: ${city} -> fallback to /San Francisco.jpg`);
   return '/San Francisco.jpg';
 }
 
@@ -1814,6 +1817,8 @@ export default function App() {
     }
   };
 
+
+
   const addComment = async (profileId: string, comment: Omit<Comment, 'id' | 'createdAt'>) => {
     try {
       const newComment = await HybridPostsService.addComment(profileId, comment);
@@ -1981,17 +1986,65 @@ export default function App() {
           
           {/* Mobile Layout - Single Column Sequence */}
           <div className="flex flex-col gap-6 w-full lg:hidden">
-            {/* Add Post Button - Mobile Only - Above the post */}
-            <div className="flex justify-center">
-              <Button
-                variant="newspaper"
-                onClick={() => setIsAddPostOpen(true)}
-                className="text-sm px-6 py-2"
-              >
-                + Add New Post
-              </Button>
-            </div>
+
             
+            {/* City Image - Always Visible */}
+            <div className="box-border content-stretch flex flex-col gap-[30px] items-start justify-start p-0 relative shrink-0 w-full">
+              <div className="h-[284px] relative shrink-0 w-full">
+                <div className="h-[284px] overflow-clip relative w-full">
+                  <div className="absolute flex items-center justify-center h-[284px] left-0 top-0 w-full bg-gray-100">
+                    <img 
+                      id={`city-image-${currentCity}`}
+                      src={getCityImagePath(currentCity)}
+                      alt={`${currentCity} Profile`} 
+                      className="w-full h-full object-cover filter grayscale contrast-125 brightness-90 sepia-20 hue-rotate-15 saturate-150"
+                      onError={(e) => {
+                        console.error(`❌ Image failed to load: ${e.currentTarget.src}`);
+                        // Try with different encoding first
+                        const encodedCity = encodeURIComponent(currentCity);
+                        if (e.currentTarget.src !== `/${encodedCity}.jpg`) {
+                          e.currentTarget.src = `/${encodedCity}.jpg`;
+                          return;
+                        }
+                        
+                        // Try alternative formats for the city
+                        const cityImageMap: { [key: string]: string[] } = {
+                          'Phoenix': ['Phoenix.jpg', 'Phoenix.webp'],
+                          'Columbus': ['Columbus.jpeg'],
+                          'Seattle': ['Seattle.jpeg'],
+                          // Add other cities with multiple formats as needed
+                        };
+                        
+                        const alternatives = cityImageMap[currentCity];
+                        if (alternatives && alternatives.length > 1) {
+                          const currentSrc = e.currentTarget.src;
+                          const currentFormat = currentSrc.split('.').pop();
+                          const nextFormat = alternatives.find(format => !format.includes(currentFormat || ''));
+                          if (nextFormat) {
+                            e.currentTarget.src = `/${nextFormat}`;
+                            return;
+                          }
+                        }
+                        
+                        // Final fallback to San Francisco image
+                        e.currentTarget.src = '/San Francisco.jpg';
+                      }}
+                      onLoad={() => {
+                        console.log(`✅ City image loaded successfully: ${currentCity} -> ${getCityImagePath(currentCity)}`);
+                      }}
+                      onLoadStart={() => {
+                        console.log(`🔄 Loading city image: ${currentCity} -> ${getCityImagePath(currentCity)}`);
+                      }}
+                    />
+                  </div>
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="absolute border border-[#000000] border-solid inset-0 pointer-events-none"
+                />
+              </div>
+            </div>
+
             {/* Featured Image Post (First post with image) */}
             {centerColumnProfiles.length > 0 && (
               <ProfileCardWithImage 
@@ -2038,26 +2091,75 @@ export default function App() {
             
             {/* Center Column */}
             <div className="flex flex-col gap-[30px] items-start justify-start w-full lg:w-[436px]">
-              {centerColumnProfiles.map((profile, index) => {
-                return index === 0 ? (
-                  <ProfileCardWithImage 
-                    key={`${profile.id}-${currentCity}`} 
-                    profile={profile} 
-                    onAddComment={addComment}
-                    onDeletePost={deletePost}
-                    isUserPost={isUserPost}
-                    currentCity={currentCity}
+
+              
+              {/* City Image - Always Visible */}
+              <div className="box-border content-stretch flex flex-col gap-[30px] items-start justify-start p-0 relative shrink-0 w-full">
+                <div className="h-[284px] relative shrink-0 w-full">
+                  <div className="h-[284px] overflow-clip relative w-full">
+                    <div className="absolute flex items-center justify-center h-[284px] left-0 top-0 w-full bg-gray-100">
+                      <img 
+                        id={`city-image-${currentCity}-desktop`}
+                        src={getCityImagePath(currentCity)}
+                        alt={`${currentCity} Profile`} 
+                        className="w-full h-full object-cover filter grayscale contrast-125 brightness-90 sepia-20 hue-rotate-15 saturate-150"
+                        onError={(e) => {
+                          console.error(`❌ Image failed to load: ${e.currentTarget.src}`);
+                          // Try with different encoding first
+                          const encodedCity = encodeURIComponent(currentCity);
+                          if (e.currentTarget.src !== `/${encodedCity}.jpg`) {
+                            e.currentTarget.src = `/${encodedCity}.jpg`;
+                            return;
+                          }
+                          
+                          // Try alternative formats for the city
+                          const cityImageMap: { [key: string]: string[] } = {
+                            'Phoenix': ['Phoenix.jpg', 'Phoenix.webp'],
+                            'Columbus': ['Columbus.jpeg'],
+                            'Seattle': ['Seattle.jpeg'],
+                            // Add other cities with multiple formats as needed
+                          };
+                          
+                          const alternatives = cityImageMap[currentCity];
+                          if (alternatives && alternatives.length > 1) {
+                            const currentSrc = e.currentTarget.src;
+                            const currentFormat = currentSrc.split('.').pop();
+                            const nextFormat = alternatives.find(format => !format.includes(currentFormat || ''));
+                            if (nextFormat) {
+                              e.currentTarget.src = `/${nextFormat}`;
+                              return;
+                            }
+                          }
+                          
+                          // Final fallback to San Francisco image
+                          e.currentTarget.src = '/San Francisco.jpg';
+                        }}
+                        onLoad={() => {
+                          console.log(`✅ City image loaded successfully (desktop): ${currentCity} -> ${getCityImagePath(currentCity)}`);
+                        }}
+                        onLoadStart={() => {
+                          console.log(`🔄 Loading city image (desktop): ${currentCity} -> ${getCityImagePath(currentCity)}`);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    className="absolute border border-[#000000] border-solid inset-0 pointer-events-none"
                   />
-                ) : (
-                  <ProfileCard 
-                    key={profile.id} 
-                    profile={profile} 
-                    onAddComment={addComment}
-                    onDeletePost={deletePost}
-                    isUserPost={isUserPost}
-                  />
-                );
-              })}
+                </div>
+              </div>
+
+              {/* Posts */}
+              {centerColumnProfiles.map((profile) => (
+                <ProfileCard 
+                  key={profile.id} 
+                  profile={profile} 
+                  onAddComment={addComment}
+                  onDeletePost={deletePost}
+                  isUserPost={isUserPost}
+                />
+              ))}
             </div>
             
             <VerticalDivider />
