@@ -1130,7 +1130,7 @@ function DateIdeas({ city }: { city: string }) {
     <div className="box-border content-stretch flex flex-col gap-2.5 items-start justify-start p-0 relative shrink-0 w-full">
       <div className="h-[38px] relative shrink-0 w-full flex items-center justify-center">
         <div className="flex flex-col font-futura-condensed-extra-bold font-futura-fallback justify-center items-center leading-[0] not-italic text-[#252424] text-[16px] text-center text-nowrap">
-          <p className="block leading-[normal]">Date Ideas in {city}</p>
+          <p className="block leading-[normal]">Fun things to do in {city}</p>
         </div>
         <div
           aria-hidden="true"
@@ -1215,7 +1215,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }
   return (
     <div className="box-border content-stretch flex flex-col gap-[18px] items-center justify-start p-0 relative shrink-0 w-full">
       <div className="relative w-full px-4">
-        <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[32px] lg:text-[40px] text-center tracking-[-1px]">
+        <div className="flex flex-col font-engravers justify-end leading-[0] not-italic relative shrink-0 text-[#252424] text-[48px] lg:text-[56px] text-center tracking-[-1px]">
         <p className="block leading-[normal]">The Daily Connection</p>
         </div>
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 flex-shrink-0 hidden lg:block">
@@ -1234,7 +1234,7 @@ function NewspaperHeader({ onCityChange, usCities, onAddPostClick, currentCity }
         <div className="box-border content-stretch flex flex-col lg:flex-row font-nyt items-center justify-between leading-[0] not-italic p-0 relative shrink-0 text-[#000000] text-[14px] lg:text-[16px] text-center text-nowrap w-full gap-2 lg:gap-0">
           <div className="flex flex-col justify-end relative shrink-0">
             <p className="block leading-[normal] text-nowrap whitespace-pre">
-              Where stories begin
+              WHERE STORIES BEGIN
             </p>
           </div>
           <div className="flex flex-col justify-end relative shrink-0">
