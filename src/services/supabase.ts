@@ -20,6 +20,10 @@ export interface DatabasePost {
   description: string;
   image?: string;
   interests: string[];
+  instagram?: string;
+  twitter?: string;
+  discord?: string;
+  phone_number?: string;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +46,10 @@ export const convertDatabasePostToProfile = (dbPost: DatabasePost, comments: Dat
   description: dbPost.description,
   image: dbPost.image,
   interests: dbPost.interests,
+  instagram: dbPost.instagram,
+  twitter: dbPost.twitter,
+  discord: dbPost.discord,
+  phoneNumber: dbPost.phone_number,
   createdAt: new Date(dbPost.created_at),
   comments: comments.map(comment => ({
     id: comment.id,
@@ -60,7 +68,11 @@ export const convertProfileToDatabasePost = (profile: any) => ({
   location: profile.location,
   description: profile.description,
   image: profile.image || null,
-  interests: profile.interests || []
+  interests: profile.interests || [],
+  instagram: profile.instagram || null,
+  twitter: profile.twitter || null,
+  discord: profile.discord || null,
+  phone_number: profile.phoneNumber || null
 });
 
 // Check if we should use Supabase or fallback to localStorage

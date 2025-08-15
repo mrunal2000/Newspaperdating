@@ -9,12 +9,31 @@ CREATE TABLE IF NOT EXISTS posts (
   image VARCHAR(500),
   interests TEXT[] DEFAULT '{}',
   likes INTEGER DEFAULT 0,
+  instagram VARCHAR(255),
+  twitter VARCHAR(255),
+  discord VARCHAR(255),
+  phone_number VARCHAR(255),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Add likes column to existing posts table if it doesn't exist
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS likes INTEGER DEFAULT 0;
+
+-- Add social media columns to existing posts table if they don't exist
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS instagram VARCHAR(255);
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS twitter VARCHAR(255);
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS discord VARCHAR(255);
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS phone_number VARCHAR(255);
+
+-- Rename existing camelCase columns to snake_case if they exist
+DO $$ 
+BEGIN
+    -- Check if phoneNumber column exists and rename it
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'posts' AND column_name = 'phoneNumber') THEN
+        ALTER TABLE posts RENAME COLUMN "phoneNumber" TO phone_number;
+    END IF;
+END $$;
 
 -- Create the comments table
 CREATE TABLE IF NOT EXISTS comments (

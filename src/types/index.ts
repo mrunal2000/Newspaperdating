@@ -14,6 +14,10 @@ export interface Profile {
   description: string;
   image?: string;
   interests: string[];
+  instagram?: string;
+  twitter?: string;
+  discord?: string;
+  phoneNumber?: string;
   createdAt: Date;
   comments: Comment[];
 }
